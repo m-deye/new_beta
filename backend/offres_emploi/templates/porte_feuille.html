@@ -1,0 +1,247 @@
+
+{% extends "base.html" %}{% load perm_tags %}
+{% block content %}
+    <!-- Inclure le sidebar -->
+    
+    <!-- Contenu principal -->
+    <div class="container-fluid content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <center><h1>Le suivi de porte feuille</h1></center>
+        </div>
+
+        <!-- Card pour le tableau -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <!-- Filtres -->
+                    {% now "Y-m-d" as today_date %}
+                    <form method="get" class="form-inline mb-4">
+                        <div class="form-group mr-3">
+                            <label for="date_debut" class="mr-2">Interval du :</label>
+                            <input type="date" name="date_debut" id="date_debut" class="form-control" value="{{ date_debut|default:today_date }}">
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="date_fin" class="mr-2">Au :</label>
+                            <input type="date" name="date_fin" id="date_fin" class="form-control" value="{{ date_fin|default:today_date }}">
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="client" class="mr-2">Client :</label>
+                            <select name="client" id="client" class="form-control">
+                                <option value="" {% if not selected_client %}selected{% endif %}>Tous</option>
+                                {% for client in clients %}
+                                    <option value="{{ client.id }}" {% if selected_client == client.id|stringformat:"s" %}selected{% endif %}>{{ client.libelle_fr }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="utilisateur" class="mr-2">Utilisateur :</label>
+                            <select name="utilisateur" id="utilisateur" class="form-control">
+                                <option value="" {% if not selected_utilisateur %}selected{% endif %}>Tous</option>
+                                {% for utilisateur in utilisateurs %}
+                                    <option value="{{ utilisateur.id }}" {% if selected_utilisateur == utilisateur.id|stringformat:"s" %}selected{% endif %}>{{ utilisateur.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="categorie" class="mr-2">Catégorie :</label>
+                            <select name="categorie" id="categorie" class="form-control">
+                                <option value="">Tous</option>
+                                <option value="offre_emploi" {% if selected_categorie == 'offre_emploi' %}selected{% endif %}>Offre d'emploi</option>
+                                <option value="appel_offre" {% if selected_categorie == 'appel_offre' %}selected{% endif %}>Appel d'offre</option>
+                                <option value="avis_infos" {% if selected_categorie == 'avis_infos' %}selected{% endif %}>Avis et infos</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-icon-split">
+                            <i class="fas fa-filter"></i> Générer
+                        </button>
+                        <a href="{% url 'export_pdf' %}?{% if date_debut %}date_debut={{ date_debut }}&{% endif %}{% if date_fin %}date_fin={{ date_fin }}&{% endif %}{% if selected_client %}client={{ selected_client }}&{% endif %}{% if selected_utilisateur %}utilisateur={{ selected_utilisateur }}&{% endif %}{% if selected_categorie %}categorie={{ selected_categorie }}{% endif %}" class="btn btn-primary btn-icon-split ml-2">
+                            <i class="fas fa-file-pdf"></i> Exporter en pdf
+                        </a>
+                    </form>
+
+                    <!-- Tableau des annonces -->
+                    <table class="table table-hover table-striped" id="dataTable" width="100%" cellspacing="0">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Client</th>
+                                <th>Annonce</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Utilisateur</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for annonce in annonces %}
+                                <tr>
+                                    <td>{{ annonce.client.libelle_fr }}</td>
+                                    {% comment %} <td>{{ annonce.titre|safe }}</td> {% endcomment %}
+                                    <td>
+                                        {% if  annonce|get_model_type == "Appel d'offre" %}
+                                            <a href="http://localhost:3000/appel-offre/{{ annonce.id }}" target="_blank" class="text-primary text-decoration-none">
+                                                {{ annonce.titre|safe }}
+                                        {% elif annonce|get_model_type == "Avis et infos"%}
+                                                <a href="http://localhost:3000/avis-infos/{{ annonce.id }}" target="_blank" class="text-primary text-decoration-none">
+                                                {{ annonce.titre|safe }}
+                                        {% else %}
+                                                <a href="http://localhost:3000/DetailOffreEmploi/{{ annonce.id }}" target="_blank" class="text-primary text-decoration-none">
+                                                    {{ annonce.titre|safe }}
+                                                </a>
+                                        {% endif %}
+                                        
+                                        
+                                        
+                                    </a>
+                                    </a>
+                                    </td>
+                                    <td>{{ annonce.date_mise_en_ligne|date:"d/m/Y" }} {{ annonce.date_mise_en_ligne|time:"H:i:s" }}</td>
+                                    <td>{{ annonce|get_model_type }}</td>
+                                    <td>{{ annonce.valider_par }}</td>
+                                    <!-- <td>
+                                        <button type="button" class="btn btn-info btn-icon-split" data-toggle="modal" data-target="#offreModal" data-offre-id="{{ annonce.id }}" title="Voir les détails de l'annonce">
+                                            <i class="fas fa-eye"></i> Détails
+                                        </button>
+                                    </td> -->
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">Aucune annonce trouvée.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale pour afficher les détails de l'annonce -->
+    <div class="modal fade" id="offreModal" tabindex="-1" role="dialog" aria-labelledby="offreModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="offreModalLabel">Détails de l'annonce</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <p><strong>Description :</strong></p>
+                        <div id="modal-description" class="wysiwyg-content border p-2" style="max-height: 300px; overflow-y: auto;"></div>
+                        <p><strong>Date limite :</strong> <span id="modal-date-limite" class="badge badge-primary"></span></p>
+                        <p><strong>Lieu :</strong> <span id="modal-lieu"></span></p>
+                        <p><strong>Statut :</strong> <span id="modal-statut" class="badge"></span></p>
+                        <h2>Documents associés</h2>
+                        <ul id="modal-documents" class="list-group">
+                            <!-- Les documents seront injectés ici dynamiquement -->
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialisation de DataTables
+            $('#dataTable').DataTable({
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
+                "pageLength": 10,
+                "order": [[2, "desc"]],
+                "paging": true,
+                "searching": true,
+                "info": true,
+                "language": {
+                    "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+                },
+                "columnDefs": [
+                    { "width": "115px", "targets": 5 }
+                ],
+                "autoWidth": false,
+                "fixedColumns": true
+            });
+
+            // Gestion de l'affichage des détails dans la modale
+            $('#offreModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var offreId = button.data('offre-id');
+
+                $.ajax({
+                    url: '/detail-offre/' + offreId + '/',
+                    method: 'GET',
+                    success: function(data) {
+                        $('#offreModalLabel').text(data.titre);
+                        $('#modal-description').html(data.description);
+
+                        let dateLimite = new Date(data.date_limite);
+                        let options = { 
+                            weekday: 'long', 
+                            day: '2-digit', 
+                            month: 'long', 
+                            year: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit'
+                        };
+                        $('#modal-date-limite').text(dateLimite.toLocaleDateString('fr-FR', options));
+                        $('#modal-lieu').text(data.lieu);
+                        
+                        var statutSpan = $('#modal-statut');
+                        if (data.si_valider) {
+                            statutSpan.text('Publiée').addClass('badge-success').removeClass('badge-danger');
+                        } else {
+                            statutSpan.text('Non Publiée').addClass('badge-danger').removeClass('badge-success');
+                        }
+
+                        var documentsHtml = '';
+                        if (data.documents && data.documents.length > 0) {
+                            data.documents.forEach(function(doc) {
+                                documentsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="${doc.piece_join}" target="_blank">
+                                        <i class="fa fa-file-alt"></i> ${doc.titre_document}
+                                    </a>
+                                </li>`;
+                            });
+                        } else {
+                            documentsHtml = '<li class="list-group-item">Aucun document associé.</li>';
+                        }
+                        $('#modal-documents').html(documentsHtml);
+                    }
+                });
+            });
+
+            // Gestion des messages SweetAlert
+            {% for message in messages %}
+                Swal.fire({
+                    toast: true,
+                    position: "top",
+                    icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% endif %}",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    background: "#fff",
+                    color: "#333"
+                });
+            {% endfor %}
+        });
+
+        // Script pour toggler le sidebar
+        $("#sidebarToggle").on("click", function () {
+            $("#accordionSidebar").toggleClass("toggled");
+            $(".content").toggleClass("ml-0");
+        });
+    </script>
+    {% endblock %}

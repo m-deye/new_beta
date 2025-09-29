@@ -1,0 +1,47 @@
+footer {
+  max-width: 1140px; /* Largeur maximale du container */
+  margin: 0 auto;
+  padding: 16px 15px;
+  background-color: #007bff; /* Couleur de fond (bg-beta) */
+  text-align: center; /* text-center */
+  margin-top: 0px; /* Ajouter un espace de 10px en haut */
+}
+
+footer .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+footer .col-md-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+footer .text-light {
+  color: #fff !important; /* Couleur du texte */
+}
+
+footer .mr-2 {
+  margin-right: 0.5rem; /* 8px */
+}
+
+footer img {
+  width: 80px;
+  height: 15px;
+  border: 0;
+}
+
+/* Styles pour la section copyright */
+.bg-beta {
+  background-color: #0c96b1;
+  padding: 10px;
+  height: 50px;
+}
+
+.text-light {
+  color: #fff !important;
+}

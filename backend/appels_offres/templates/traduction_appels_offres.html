@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Traduction de l'appels d'offre</h2>
+  {{ form.media }}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {# ------------ Onglets ------------ #}
+    <ul class="nav nav-tabs" id="translateTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active"
+                id="info-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#info"
+                type="button"
+                role="tab"
+                aria-controls="info"
+                aria-selected="true">
+          Informations
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                id="docs-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#docs"
+                type="button"
+                role="tab"
+                aria-controls="docs"
+                aria-selected="false">
+          Documents
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 p-4" id="translateTabContent">
+      {# --- Onglet "Informations" --- #}
+      <div class="tab-pane fade show active"
+           id="info"
+           role="tabpanel"
+           aria-labelledby="info-tab">
+
+        <!-- Titre original -->
+        <div class="mb-4">
+          <label class="form-label" for="titre_original">Titre original</label>
+          <input type="text"
+                 id="titre_original"
+                 class="form-control"
+                 value="{{ offre.titre|striptags }}"
+                 disabled>
+        </div>
+        <!-- Titre traduit -->
+        <div class="mb-4">
+          {{ form.titre_ar.label_tag }}
+          {{ form.titre_ar|add_class:"form-control" }}
+        </div>
+
+        <!-- Description originale -->
+        <div class="mb-4">
+          <label class="form-label">Description originale</label>
+          <div class="border rounded p-3" style="max-height:200px; overflow:auto;">
+            {{ offre.description|safe }}
+          </div>
+        </div>
+        <!-- Description traduite -->
+        <div class="mb-4">
+          {{ form.description_ar.label_tag }}
+          {{ form.description_ar|add_class:"form-control" }}
+        </div>
+
+        <!-- Lieu original -->
+        <div class="mb-4">
+          <label class="form-label" for="lieu_original">Lieu original</label>
+          <input type="text"
+                 id="lieu_original"
+                 class="form-control"
+                 value="{{ offre.lieu }}"
+                 disabled>
+        </div>
+        <!-- Lieu traduit -->
+        <div class="mb-4">
+          {{ form.lieu_ar.label_tag }}
+          {{ form.lieu_ar|add_class:"form-control" }}
+        </div>
+
+        {# Champs groupement, si applicable #}
+        {% if offre.si_groupement %}
+          <!-- Titre entreprise original -->
+          <div class="mb-4">
+            <label class="form-label" for="titre_entreprise_original">
+              Titre entreprise original
+            </label>
+            <input type="text"
+                   id="titre_entreprise_original"
+                   class="form-control"
+                   value="{{ offre.titre_entreprise|striptags }}"
+                   disabled>
+          </div>
+          <!-- Titre entreprise traduit -->
+          <div class="mb-4">
+            {{ form.titre_entreprise_ar.label_tag }}
+            {{ form.titre_entreprise_ar|add_class:"form-control" }}
+          </div>
+
+          <!-- Titre groupement original -->
+          <div class="mb-4">
+            <label class="form-label" for="titre_groupement_original">
+              Titre groupement original
+            </label>
+            <input type="text"
+                   id="titre_groupement_original"
+                   class="form-control"
+                   value="{{ offre.titre_groupement_cpacial|striptags }}"
+                   disabled>
+          </div>
+          <!-- Titre groupement traduit -->
+          <div class="mb-4">
+            {{ form.titre_groupement_cpacial_ar.label_tag }}
+            {{ form.titre_groupement_cpacial_ar|add_class:"form-control" }}
+          </div>
+        {% endif %}
+
+      </div>
+
+      {# --- Onglet "Documents" --- #}
+      <div class="tab-pane fade"
+           id="docs"
+           role="tabpanel"
+           aria-labelledby="docs-tab">
+
+        {# 1) Lecture seule des documents existants #}
+        <h5>Pièces jointes existantes</h5>
+        {% if docs_exist %}
+          <ul class="list-group mb-4">
+            {% for doc in docs_exist %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ doc.titre_document }}
+                <div>
+                  <a href="{{ doc.piece_join.url }}"
+                     target="_blank"
+                     class="btn btn-sm btn-outline-primary me-1">
+                    Voir / Télécharger
+                  </a>
+                  <form method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_doc_id" value="{{ doc.id }}">
+                    <button type="submit"
+                            name="action"
+                            value="supprimer"
+                            class="btn btn-sm btn-outline-danger">
+                      Supprimer
+                    </button>
+                  </form>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Aucun document enregistré.</p>
+        {% endif %}
+
+        {# 2) Formset pour ajouter de nouveaux documents #}
+        <h5>Ajouter de nouveaux documents</h5>
+        {{ formset_new.management_form }}
+        <div id="document-forms">
+          {% for docform in formset_new %}
+            <div class="document-form mb-3 border p-3">
+              {% for field in docform.visible_fields %}
+                <div class="mb-3">
+                  {{ field.label_tag }}
+                  {{ field|add_class:"form-control" }}
+                  {% if field.errors %}
+                    <div class="text-danger small">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              {% if not forloop.first %}
+                <button type="button" class="btn btn-danger remove-document">
+                  Retirer ce document
+                </button>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <button type="button" id="add-document" class="btn btn-secondary mb-4">
+          + Ajouter un document
+        </button>
+
+      </div>
+    </div>
+
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-primary">Enregistrer tout</button>
+      <a href="{% url 'admin_offres' %}" class="btn btn-secondary ms-2">Annuler</a>
+    </div>
+  </form>
+</div>
+
+{# Bootstrap & SweetAlert2 JS #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const deleteButtons = document.querySelectorAll('button[name="action"][value="supprimer"]');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      Swal.fire({
+        title: "Êtes-vous sûr ?",
+        text: "Cette action est irréversible !",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Oui, supprimer !",
+        cancelButtonText: "Annuler",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          button.closest('form').submit();
+        }
+      });
+    });
+  });
+});
+
+// Gestion dynamique du formset "formset_new"
+(function(){
+  const container = document.getElementById('document-forms');
+  const addBtn    = document.getElementById('add-document');
+  const total     = document.getElementById('id_document_set-TOTAL_FORMS');
+
+  addBtn.addEventListener('click', () => {
+    const idx = parseInt(total.value, 10);
+    let tpl = `{{ formset_new.empty_form.as_p|escapejs }}`;
+    tpl = tpl.replace(/__prefix__/g, idx)
+             .replace(/<p>/g, '<div class="mb-3">')
+             .replace(/<\/p>/g, '</div>')
+             .replace(/<label/g, '<label class="form-label"')
+             .replace(/<input|<select|<textarea/g, match => match + ' class="form-control"');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'document-form mb-3 border p-3';
+    wrapper.innerHTML = tpl +
+      '<button type="button" class="btn btn-danger remove-document">Retirer ce document</button>';
+    container.appendChild(wrapper);
+    total.value = idx + 1;
+  });
+
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('remove-document')) {
+      const box = e.target.closest('.document-form');
+      box.remove();
+      const forms = container.querySelectorAll('.document-form');
+      total.value = forms.length;
+    }
+  });
+})();
+</script>
+{% endblock %}

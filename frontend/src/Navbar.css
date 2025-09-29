@@ -1,0 +1,112 @@
+/* Limite la largeur de la barre de navigation */
+#topHeader {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Hauteur par défaut */
+.bgHead {
+  background-color: #4cb6ea;
+}
+
+/* Sur écran large uniquement */
+@media (min-width: 992px) {
+  .bgHead {
+    height: 40px; /* ou toute valeur souhaitée */
+  }
+}
+
+/* src/Navbar.css */
+.rtl {
+  direction: rtl; /* global switch en mode RTL */
+}
+
+.nav1 {
+  color: white !important;
+  padding-left: 15px;
+  padding-bottom: -20px;
+}
+
+.navSize {
+  font-size: 1rem;
+}
+
+.navbar-toggler {
+  background-color: #007bff;
+}
+
+.menuDrop {
+  background-color: #0c96b1;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px #ffffff;
+  font-size: 0.85rem;
+  color: #858796;
+  z-index: 1000;
+  top: 100%;
+  min-width: 10rem;
+  padding: 5px 10px;
+  margin: 0.125rem 0 0;
+  background-clip: padding-box;
+  border: 1px solid #e3e6f0;
+  border-radius: 0.35rem;
+  text-decoration: none;
+}
+
+.dropdown-items {
+  padding: 2px 7px;
+  text-decoration: none !important;
+  display: block;
+  color: white !important;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.main-header-right a {
+  color: white !important;
+  margin-left: 10px;
+}
+
+/* Boutons personnalisés */
+.custom-button {
+  padding: 0px 16px;
+  font-family: "Nunito", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  color: white;
+  text-decoration: none;
+  background: none;
+  border: none;
+  display: inline-block;
+}
+
+.custom-button:hover {
+  color: #ccc;
+  text-decoration: none;
+}
+
+.contacte {
+  color: #fff;
+}
+
+.navbar-toggler.active {
+  transform: rotate(90deg);
+}
+
+.collapse.show {
+  display: block !important;
+}
+/* Responsive menu display */
+@media (max-width: 768px) {
+  .navbar-toggler {
+    display: block !important;
+  }
+
+  .navbar-collapse {
+    display: none !important;
+  }
+
+  .navbar-collapse.show {
+    display: block !important;
+  }
+}

@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .tab-container {
+        margin: 20px;
+        width: 100%; /* Occupe toute la largeur */
+    }
+    .tab {
+        display: flex; /* Utilise flexbox pour une répartition égale */
+        border-bottom: 2px solid #ddd;
+        width: 100%; /* Assure que les onglets occupent toute la largeur */
+    }
+    .tab button {
+        flex: 1; /* Chaque onglet prend une part égale de l'espace */
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        padding: 12px 24px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        color: #333;
+        text-align: center; /* Centre le texte dans les onglets */
+    }
+    .tab button:hover {
+        background-color: #e0e0e0;
+    }
+    .tab button.active {
+        background-color: #fff;
+        border-bottom: 2px solid #fff;
+        color: #007bff;
+        font-weight: bold;
+    }
+    .tabcontent {
+        display: none;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 0 4px 4px 4px;
+        background-color: #fff;
+        width: 100%; /* Assure que le contenu occupe toute la largeur */
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    .alert {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .closebtn {
+        float: right;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    /* Style pour le toggle switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #007bff;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+</style>
+
+<h2>Créer un utilisateur</h2>
+
+<div class="tab-container">
+    <div class="tab">
+        
+        <button class="tablinks active" onclick="openTab(event, 'Generer')">Générer</button>
+        <button class="tablinks" onclick="openTab(event, 'Manuel')">Manuel</button>
+    </div>
+
+    <!-- Onglet Manuel -->
+    <div id="Manuel" class="tabcontent">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">×</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nom d'utilisateur</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.username.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.email.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Rôle</label>
+                {{ form.role }}
+                {% if form.role.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.role.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Mot de passe</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.password1.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Confirmez le mot de passe</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.password2.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Créer</button>
+        </form>
+    </div>
+
+    <!-- Onglet Générer -->
+    <div id="Generer" class="tabcontent" style="display: block;">
+        <form method="post" action="{% url 'generer_utilisateur' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Rôle : <span id="role-label">Client</span></label>
+                <label class="switch">
+                    <input type="checkbox" name="is_client" checked onchange="document.getElementById('role-label').textContent = this.checked ? 'Client' : 'Candidat';">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Générer et envoyer</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+</script>
+
+{% endblock %}

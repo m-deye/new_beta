@@ -1,0 +1,36 @@
+.py-0 {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+#nav-text {
+  color: #5a5c69;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.shadow-sm {
+  box-shadow: 0 0.125rem 0.25rem 0 rgba(58, 59, 69, 0.2);
+}
+
+.text-dark {
+  color: #5a5c96;
+}
+
+.grow {
+  transition: transform 0.2s ease-in-out;
+}
+
+.grow:hover {
+  transform: scale(1.1);
+}
+
+.nav-link-custom {
+  color: #5a5c96;
+}
+
+/* S'assurer que les liens dans la barre de navigation ne sont pas affectés par d'autres styles */
+.navbar .nav-link-custom,
+.navbar .nav-link-custom:hover,
+.navbar .nav-link-custom:focus {
+  color: #5a5c96 !important;
+}

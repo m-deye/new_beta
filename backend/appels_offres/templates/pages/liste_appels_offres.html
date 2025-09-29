@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <center><h1>Liste des appels d'offres</h1></center>
+        {% if perms.appels_offres.add_appeloffre %}
+            <a href="{% url 'creer_appel_offre' %}">
+                <button type="button" class="btn btn-primary">Créer un appel d'offre</button>
+            </a>
+        {% endif %}
+    </div>   
+    <div class="container-fluid">
+        <p class="mb-4"></p>
+
+        <!-- DataTales Example -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <!-- Tableau des appels d'offres -->
+                    <table class="table table-hover table-striped" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Nombre de vues</th>
+                                <th>État</th>
+                                <th>Client</th>
+                                <th>Date limite</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appel in appels_offres %}
+                            <tr>
+                                <td>
+                                    <a href="http://localhost:3000/appels-offres/{{ appel.id }}" target="_blank" class="text-primary text-decoration-none">
+                                        {{ appel.titre|safe }}
+                                    </a>
+                                </td>
+                                <td>{{ appel.nombre_vu }}</td>
+                                <td>
+                                    {% if appel.si_valider %}
+                                        Validé
+                                    {% else %}
+                                        Non Validé
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if appel.client and appel.client.libelle_fr %}
+                                        {{ appel.client.libelle_fr }}
+                                    {% else %}
+                                        {{ appel.client.utilisateur.username }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ appel.date_limite }}</td>
+
+                                <td>
+                                    <form method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="appel_id" value="{{ appel.id }}">
+                                        
+                                        <!-- Boutons Supprimer, Modifier et Détails -->
+                                        {% if perms.appels_offres.delete_appeloffre %}
+                                            <button class="btn btn-danger btn-icon-split" type="submit" name="action" value="supprimer" {% if appel.si_valider %}disabled{% endif %} title="Supprimer l'appel d'offre" style="margin: 3px;">
+                                                <i class="fa-sharp fa-solid fa-trash"></i>
+                                            </button>
+                                        {% endif %}
+
+                                        {% if perms.appels_offres.change_appeloffre %}
+                                            <button class="btn btn-success btn-icon-split" type="submit" name="action" value="modifier" {% if appel.si_valider %}disabled{% endif %} title="Modifier l'appel d'offre" style="margin: 3px;">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                        {% endif %}
+                                        
+                                        <!-- Bouton Valider/Invalider -->
+                                        {% if perms.appels_offres.valider_appeloffre %}
+                                            {% if appel.si_valider %}
+                                                <button class="btn btn-danger btn-icon-split" type="submit" name="action" value="invalider" title="Dévalider l'appel d'offre" style="margin: 3px;">
+                                                    <i class="fa-solid fa-badge-check"></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-success btn-icon-split" type="submit" name="action" value="valider" title="Valider l'appel d'offre" style="margin: 3px;">
+                                                    <i class="fa-solid fa-badge-check"></i>
+                                                </button>
+                                            {% endif %}
+                                        {% endif %}
+                                        
+                                        {% if perms.appels_offres.change_appeloffre %}
+                                        <a href="{% url 'traduire_appel_offre' appel.id %}" class="btn btn-warning btn-icon-split" title="Traduire l'appel d'offre" style="margin: 3px;">
+                                            <i class="fa-solid fa-language"></i>
+                                        </a>
+                                        {% endif %}
+                                        
+                                        <!-- Conversion Button -->
+                                        <button type="button" class="btn btn-info btn-icon-split" onclick="openConversionModal({{ appel.id }})" title="Changer de catégorie" style="margin: 3px;">
+                                            <i class="fa-solid fa-exchange-alt"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    {% if perms.appels_offres.fixe_appeloffre %}
+                                    <form method="post" action="{% url 'fixer_appel' appel.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn {% if appel.si_fixe %}btn-danger{% else %}btn-warning{% endif %} btn-icon-split" 
+                                        {% if appel.si_fixe %} title="D'Fixer l'appel d'offre"
+                                         {% else %} title="Fixer l'appel d'offre" {% endif %}>
+                                            <i class="fa-solid fa-thumbtack"></i> 
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conversion Modal -->
+<div class="modal fade" id="conversionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Changer de catégorie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="newType" class="form-label">Nouveau type :</label>
+                        <select class="form-select" id="newType">
+                            <option value="">-- Sélectionner un type --</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="performConversion()">Convertir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- /.container-fluid -->
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialisation de DataTables
+    $('#dataTable').DataTable({
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
+        "paging": true,
+        "searching": true,
+        "ordering": false,
+        "info": true,
+        "language": {
+            "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+        },
+        "columnDefs": [
+            { "width": "115px", "targets": 5 }
+        ],
+        "autoWidth": false,
+        "fixedColumns": true
+    });
+});
+
+// Conversion functionality (for list view)
+let availableTypes = {};
+let currentConversionId = null;
+
+function openConversionModal(appelId) {
+    currentConversionId = appelId;
+    fetch(`/appels_offres/convert/${appelId}/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Flatten all types from all categories into a single list
+            availableTypes = {};
+            const newTypeSelect = document.getElementById('newType');
+            newTypeSelect.innerHTML = '<option value="">-- Sélectionner un type --</option>';
+            
+            for (const [categoryId, category] of Object.entries(data.categories)) {
+                const types = category.types;
+                types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type[0];
+                    option.textContent = category.name + ' - ' + type[1];
+                    newTypeSelect.appendChild(option);
+                    availableTypes[type[0]] = {category: categoryId, type: type[1]};
+                });
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('conversionModal'));
+            modal.show();
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de réseau');
+    });
+}
+
+function performConversion() {
+    const newType = document.getElementById('newType').value;
+    
+    if (!newType) {
+        alert('Veuillez sélectionner un type');
+        return;
+    }
+    
+    // Removed the confirmation dialog as requested
+    fetch(`/appels_offres/convert/${currentConversionId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            target_category: availableTypes[newType].category,
+            new_type: newType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Removed the success message as requested
+            window.location.reload();
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de réseau lors de la conversion');
+    });
+}
+</script>
+
+{% endblock %}

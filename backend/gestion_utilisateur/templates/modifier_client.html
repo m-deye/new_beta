@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    <h2 class="my-4">Modifier les informations du client</h2>
+    {% if messages %}
+      {% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}
+    {% endif %}
+    <!-- Légende pour les champs obligatoires -->
+    <p class="mb-3">
+      <small><span class="text-danger">*</span> Champs obligatoires</small>
+    </p>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      Logo :
+      {% if form.logo.field.required %}<span class="text-danger">*</span>{% endif %}
+      {{ form.logo }}
+      {% if form.logo.errors %}{{ form.logo.errors }}{% endif %}
+      {% for field in form %}
+        {% if field.name != 'logo' and field.name != 'special' %}
+          {{ field.label }}
+          {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+          {{ field }}
+          {% if field.errors %}{{ field.errors }}{% endif %}
+        {% elif field.name == 'special' %}
+          <div class="form-check">
+            {{ field }}
+            <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+          </div>
+          {% if field.errors %}{{ field.errors }}{% endif %}
+        {% endif %}
+      {% endfor %}
+      <!-- Boutons de validation et d'annulation -->
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+      <a href="{% url 'liste_utilisateurs' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+  </div>
+{% endblock %}

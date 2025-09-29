@@ -1,0 +1,1028 @@
+import React, { useEffect, useState } from "react";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-responsive-bs5";
+import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
+import "datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { Modal, Button, Form } from "react-bootstrap";
+import { Editor } from '@tinymce/tinymce-react';
+import axios from 'axios';
+import { Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faShare } from '@fortawesome/free-solid-svg-icons';
+import { faFacebook, faLinkedin, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
+const OffresEmploi = ({ offresEmploi, clientId }) => {
+  // États pour les modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // États du formulaire
+  const [client_id, setClientId] = useState('');
+  const [typeAnnonce, setTypeAnnonce] = useState('1');
+  const [lieu, setLieu] = useState('');
+  const [showLieuInput, setShowLieuInput] = useState(false);
+  const [titreContent, setTitreContent] = useState('');
+  const [descriptionContent, setDescriptionContent] = useState('');
+  const [selectedType, setSelectedType] = useState('1');
+  const locationOptions = [
+    { value: 'Hodh Charghi', label: 'Hodh Charghi' },
+    { value: 'Hodh Gharbi', label: 'Hodh Gharbi' },
+    { value: 'Assaba', label: 'Assaba' },
+    { value: 'Gorgol', label: 'Gorgol' },
+    { value: 'Brakna', label: 'Brakna' },
+    { value: 'Trarza', label: 'Trarza' },
+    { value: 'Adrar', label: 'Adrar' },
+    { value: 'Dakhlet Nouadhibou', label: 'Dakhlet Nouadhibou' },
+    { value: 'Tagant', label: 'Tagant' },
+    { value: 'Guidimakha', label: 'Guidimakha' },
+    { value: 'Tiris-Zemmour', label: 'Tiris-Zemmour' },
+    { value: 'Inchiri', label: 'Inchiri' },
+    { value: 'Nouakchott', label: 'Nouakchott' },
+    { value: 'Autre', label: 'Autre' },
+  ];
+
+  const [selectedOffre, setSelectedOffre] = useState(null);
+
+  useEffect(() => {
+    if (offresEmploi.length > 0) {
+      const table = $("#offresEmploiTable").DataTable({
+        responsive: true,
+        destroy: true,
+      });
+
+      return () => table.destroy();
+    }
+  }, [offresEmploi]);
+
+  // Gestion des modals
+  const handleOpenAddModal = () => setShowAddModal(true);
+  const handleCloseAddModal = () => setShowAddModal(false);
+
+   
+  
+    const handleTypeChange = (event) => {
+      const newValue = event.target.value;
+      setSelectedType(newValue);
+      changeTypeAnnonce(newValue);
+    };
+  
+    const changeTypeAnnonce = (value) => {
+      console.log('Type d\'offre changé en :', value === '1' ? 'National' : 'International');
+    };
+
+  // Modifiez le handler pour stocker l'offre sélectionnée
+const handleOpenDetailModal = (offre) => {
+  setSelectedOffre(offre);
+  setShowDetailModal(true);
+};
+  const handleCloseDetailModal = () => setShowDetailModal(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      titre: titreContent,
+      description: descriptionContent,
+      type_offre: typeAnnonce,
+      date_limite: new Date(document.getElementById("date_limite").value).toISOString(),
+      lieu: lieu,
+      national : selectedType,
+    };
+
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/offres/ajouter/${clientId}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Offre ajoutée :", response.data);
+      handleCloseAddModal();
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  };
+
+  const renderTooltip = (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+      Visualiser
+    </Tooltip>
+  );
+
+  
+
+  return (
+    <section className="container mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="m-0">Offres d'emploi</h2>
+        <Button
+          variant="primary"
+          className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" style={{ width:'170px' ,textDecoration:'none'}}
+          onClick={handleOpenAddModal}
+        >
+          <FontAwesomeIcon icon={faPlus} className="fas fa-sm text-white-50" />
+          Ajouter une offre
+        </Button>
+      </div>
+
+      <div className="text-center card shadow-sm" style={{ maxWidth: "100%" }}>
+        <div className="card-bod">
+          <table id="offresEmploiTable" className="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Date limite</th>
+                <th>Nom du client</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offresEmploi.map((offre) => (
+                <tr key={offre.id}>
+                  <td dangerouslySetInnerHTML={{ __html: offre.titre }} ></td>
+                  <td>{offre.date_limite}</td>
+                  <td>{offre.client__nom}</td>
+                  <td>
+                    <div className="btn-group">
+                      <OverlayTrigger placement="top" data-original-title="Visualiser" overlay={renderTooltip}>
+                      <button
+                      onClick={() => handleOpenDetailModal(offre)}
+                    >
+                      <FontAwesomeIcon icon={faEye} />
+                    </button>
+
+                      </OverlayTrigger>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal d'ajout */}
+      <Modal show={showAddModal} onHide={handleCloseAddModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Nouvelle Offre</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <input type="hidden" name="_token" value="za8y7uqCskRLxgUgjuLj1jdcdvP2JpDm2fRLqdES" />
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Titre <span className="required_field">*</span></Form.Label>
+              <Editor
+                apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                id="titre"
+                init={{
+                  height: 400,
+                  plugins: 'powerpaste advcode table lists checklist',
+                  toolbar: 'insertfile a11ycheck undo redo | bold italic | forecolor backcolor | template codesample | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                }}
+                onEditorChange={(content) => setTitreContent(content)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Type <span className="required_field">*</span></Form.Label>
+              <Form.Select 
+                value={typeAnnonce}
+                onChange={(e) => setTypeAnnonce(e.target.value)}
+              >
+                <option value="1">Offres d'emploi</option>
+                <option value="2">Consultants</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description <span className="required_field">*</span></Form.Label>
+              <Editor
+                apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                id="content"
+                init={{
+                  height: 400,
+                  plugins: 'powerpaste advcode table lists checklist',
+                  toolbar: 'insertfile a11ycheck undo redo | bold italic | forecolor backcolor | template codesample | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                }}
+                onEditorChange={(content) => setDescriptionContent(content)}
+              />
+            </Form.Group>
+
+            <Row className="mb-3">
+      {/* Date limite */}
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label>
+                Date limite <span className="required_field">*</span>
+              </Form.Label>
+              <Form.Control
+                type="datetime-local"
+                id="date_limite"
+                defaultValue="2025-02-28"
+              />
+            </Form.Group>
+          </Col>
+
+      {/* Type de l'offre */}
+          <Col md={6}>
+            <Form.Group controlId="type_offre">
+              <Form.Label>Type de l'offre</Form.Label>
+              <Form.Control
+                as="select"
+                name="type_offre"
+                value={selectedType}
+                onChange={handleTypeChange}
+                className="bordered"
+              >
+                <option value="1">National</option>
+                <option value="2">International</option>
+              </Form.Control>
+            </Form.Group>
+          </Col>
+    </Row>
+
+    <Form.Group>
+          <Form.Label>Lieu <span className="required_field">*</span></Form.Label>
+          <Form.Select
+            value={lieu}
+            onChange={(e) => {
+              setLieu(e.target.value);
+              setShowLieuInput(e.target.value === '14');
+            }}
+          >
+            <option value="">Sélectionner...</option>
+            {locationOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Form.Select>
+          {showLieuInput && (
+            <div className="mt-3">
+              <Form.Control placeholder="Ex: Paris, Bamako, Tunis" className="mb-2" />
+              <Form.Control placeholder="Ex: باريس, باماكو, تونس" dir="rtl" />
+            </div>
+          )}
+        </Form.Group>
+
+            <div className="text-end">
+              <Button variant="success" type="submit">
+                Ajouter
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal de détail */}
+      <Modal show={showDetailModal} onHide={handleCloseDetailModal} size="xl">
+        <Modal.Header closeButton>
+        {/* <Modal.Title>Détails de l'offre : {selectedOffre?.titre}</Modal.Title> */}
+        <Modal.Title>
+  Détails de l'offre : {selectedOffre?.titre.replace(/<\/?[^>]+(>|$)/g, "")}
+</Modal.Title>
+
+
+        </Modal.Header>
+        <Modal.Body>
+        {selectedOffre && (
+          <div className="col-md-12">
+            <style>{`
+              table { width: 100% !important; }
+              #divText img { max-width: 100% !important; }
+              body { font-size: 14px !important; }
+            `}</style>
+
+              <div className="container bg-white">
+                <div className="row">
+                    <div className="col-md-12">
+                        <div className="card p-2 mt-2 mb-2" style={{ maxWidth: '100%' }}>
+                            <div className="row">
+                                <div className="col-md-2">
+                                    <div className="text-center">
+                                        <img width="120px" src={selectedOffre.client__logo} alt="Company Logo" />
+                                    </div>
+                                </div>
+                                <div className="col-md-10 align-self-center">
+                                    <span className="font-weight-bold" style={{ fontSize: '14px' }}>{selectedOffre.client__nom}</span><br />
+                                    <span className="text-beta font-weight-bold" style={{ fontSize: '14px', color: '#0C96B1' }} dangerouslySetInnerHTML={{ __html: selectedOffre.titre }}></span>
+                                    <div className="row">
+                                        <div className="col-lg-6">
+                                            <b>Date limite : <span className="text-danger" > {new Date(selectedOffre.date_limite).toLocaleDateString()}</span></b>
+                                        </div>
+                                        <div className="col-lg-6 text-end" >
+                                            <b>Lieu : <span className="text-danger" style={{ marginRight: '15px' }}> {selectedOffre.lieu}</span></b>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <br/> <br/> <br/>
+                            <div className="row" id="divText">
+                            
+                            <div className="col-lg-12">
+                                            {/* Afficher la description de l'offre */}
+                                            <p dangerouslySetInnerHTML={{ __html: selectedOffre.description }} style={{ textDecoration: 'none' }} />
+                                        </div>
+
+                                        {/* Vérifier si des documents existent */}
+                                        {selectedOffre.documents && selectedOffre.documents.length > 0 ? (
+                                            <div className="col-lg-12">
+                                                <br /><br />
+                                                <span className="titreDocument">Pour plus d'informations, consultez le lien ci-après :</span>
+                                                <br /><br />
+                                                {selectedOffre.documents.map((document, index) => (
+                                                    <a
+                                                        key={index}
+                                                        className="titreDoc"
+                                                        href={document.piece_join} 
+                                                        target="_blank"
+                                                        rel="noopener noreferrer" style={{ textDecoration: 'none' }}
+                                                    >
+                                                        <img
+                                                            width="30px"
+                                                            src="https://beta.mr/img/pdf.png"
+                                                            alt="PDF Icon"
+                                                        />
+                                                       <span>{document.titre_document}</span>
+                                                    </a>
+                                                ))}
+                                                <br />
+                                            </div>
+                                        ) : (
+                                           
+                                            null
+                                        )}
+
+
+
+                            </div>
+                            <div className="card-footer mt-5">
+                            <div className="row">
+                                <div className="col-6">
+                                    <b>Offre en ligne depuis : </b> <span style={{color: 'red'}}>12 février 2025</span>
+                                </div>
+                                <div className="col-6 text-end">
+                                    <b><i className="fa fa-share"></i> Partager cette offre</b>
+                                    <a className="" target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/sharer/sharer.php?u=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145">
+                                        <i className="fab fa-facebook fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                    <a className="mx-2" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145">
+                                        <i className="fab fa-linkedin fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                    <a className="" target="_blank" rel="noopener noreferrer" href="whatsapp://send?text=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145">
+                                        <i className="fab fa-whatsapp text-success fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                                <div className="btn-group" role="group" aria-label="Basic example">
+                                <a
+                                            className="mr-3 btn btn-sm shadow-sm mb-1" // Suppression de btn-primary car nous définissons une couleur personnalisée
+                                            href="/listcompter_OffresEmplois"
+                                            style={{
+                                                textDecoration: 'none', // Ajout de text-decoration: none
+                                                backgroundColor: '#4E73DF', // Ajout de la couleur de fond
+                                                width: '250px', // Réduction de la largeur (ajustez la valeur selon vos besoins)
+                                            }}
+                                        >
+                                            Voir la liste complète
+                                        </a>
+                                    <a
+                                        className="btn btn-sm btn-primary shadow-sm mb-1" 
+                                        href={`/annonces_offreemp/${selectedOffre.client__nom}`}  style={{
+                                            textDecoration: 'none', // Ajout de text-decoration: none
+                                            backgroundColor: '#4E73DF', // Ajout de la couleur de fond
+                                            
+                                        }}
+                                    >
+                                        Voir toutes les annonces :
+                                        <span style={{ color: 'black', fontWeight: 'bold' }}> {selectedOffre.client__nom}</span>
+                                    </a>
+                                </div>
+                            </div>
+                          
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div> )}
+        </Modal.Body>
+      </Modal>
+    </section>
+  );
+};
+
+export default OffresEmploi;
+
+---------------------------*const JobOfferModal = ({ show, handleClose, offre }) => {
+  const [activeTab, setActiveTab] = useState('tab1');
+  const [formData, setFormData] = useState({
+    titre: offre?.titre,
+    ref_type_annonce_id: offre?.type_offre,
+    description: offre?.description ,
+    employeur_id: offre?.employeur_id || '290',
+    date_publication: offre?.date_publication || '',
+    date_limite: offre?.date_limite,
+    type_offre: offre?.type_offre || '1',
+    ref_lieu_id: offre?.lieu || '4',
+    ville: offre?.lieu || '',
+    ville_ar: offre?.ville_ar || '',
+    titre_documents: offre?.titre_documents || '',
+    afficher_titre_entreprise: offre?.afficher_titre_entreprise || '',
+    ref_categorie_id: offre?.ref_categorie_id || '1', // New field: Catégorie
+    groupement_sepecial: offre?.groupement_sepecial || '0', // New field: Groupement spécial
+    titre_groupement_special: offre?.titre_groupement_special || '', // New field: Titre groupement spécial
+    titre_groupement_special_arabe: offre?.titre_groupement_special_arabe || '', // New field: Titre groupement spécial arabe
+    id: offre?.id || '8253',
+    titre_ar: offre?.titre_ar || '',
+    afficher_titre_entreprise_ar: offre?.afficher_titre_entreprise_ar || '',
+    titre_documents_ar: offre?.titre_documents_ar || '',
+    description_ar: offre?.description_ar || '',
+    message_ar: offre?.message_ar || '',
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleEditorChange = (content, name) => {
+    setFormData({ ...formData, [name]: content });
+  };
+
+  const handleSubmit = (e, tab) => {
+    e.preventDefault();
+    console.log(`Submitting form for ${tab}:`, formData);
+    // Add API call here to submit data
+  };
+  
+
+  return (
+    <Modal show={show} onHide={handleClose} size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <b>Offre : <div dangerouslySetInnerHTML={{ __html: formData.titre }} /></b>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+          <Nav variant="tabs" className="main-tabs">
+            <Nav.Item>
+              <Nav.Link eventKey="tab1">
+                <i className="fa fa-info-circle"></i> Info
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="tab2">
+                <i className="fa fa-language"></i> Traduction en arabe
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="tab3">
+                <i className="far fa-file-pdf"></i> GED
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
+
+          <Tab.Content>
+            <Tab.Pane eventKey="tab1">
+              <Form onSubmit={(e) => handleSubmit(e, 'tab1')}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre <span className="text-danger">*</span></Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.titre}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'titre')}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Type <span className="text-danger">*</span></Form.Label>
+                  <Form.Select name="ref_type_annonce_id" value={formData.ref_type_annonce_id} onChange={handleInputChange}>
+                    <option value="1">Offres d'emploi</option>
+                    <option value="2">Consultants</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description <span className="text-danger">*</span></Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.description}
+                    init={{
+                      height: 445,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist link image',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'description')}
+                  />
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date de mise en ligne <span className="text-danger">*</span></Form.Label>
+                      <Form.Control type="date" name="date_publication" value={formData.date_publication} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date limite <span className="text-danger">*</span></Form.Label>
+                      <Form.Control type="datetime-local" name="date_limite" value={formData.date_limite} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Type de l'offre</Form.Label>
+                      <Form.Select name="type_offre" value={formData.type_offre} onChange={handleInputChange}>
+                        <option value="1">National</option>
+                        <option value="2">International</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Lieu <span className="text-danger">*</span></Form.Label>
+                      <Form.Select name="ref_lieu_id" value={formData.ref_lieu_id} onChange={handleInputChange}>
+                        <option value="1">Hodh Charghi</option>
+                        <option value="2">Hodh Gharbi</option>
+                        <option value="3">Assaba</option>
+                        <option value="4">Gorgol</option>
+                        <option value="5">Brakna</option>
+                      </Form.Select>
+                      <Form.Control
+                        type="text"
+                        name="ville_ar"
+                        value={formData.ville_ar}
+                        onChange={handleInputChange}
+                        placeholder="Ville Arabe"
+                        className="mt-2"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre des documents</Form.Label>
+                      <Form.Control type="text" name="titre_documents" value={formData.titre_documents} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre entreprise</Form.Label>
+                      <Form.Control type="text" name="afficher_titre_entreprise" value={formData.afficher_titre_entreprise} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* New Fields */}
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Catégorie <span className="text-danger">*</span></Form.Label>
+                      <Form.Select name="ref_categorie_id" value={formData.ref_categorie_id} onChange={handleInputChange}>
+                        <option value="1">Standard</option>
+                        <option value="2">Dépôt</option>
+                        <option value="3">SAR</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Groupement spécial</Form.Label>
+                      <Form.Select name="groupement_sepecial" value={formData.groupement_sepecial} onChange={handleInputChange}>
+                        <option value="0">Non</option>
+                        <option value="1">Oui</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre groupement spécial</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="titre_groupement_special"
+                    value={formData.titre_groupement_special}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre groupement spécial arabe</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="titre_groupement_special_arabe"
+                    value={formData.titre_groupement_special_arabe}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                  <Button variant="success" type="submit">
+                    <i className="fas fa-save"></i> Enregistrer
+                  </Button>
+                </div>
+              </Form>
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="tab2">
+              <Form onSubmit={(e) => handleSubmit(e, 'tab2')}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre en arabe</Form.Label>
+                  <Form.Control type="text" name="titre_ar" value={formData.titre_ar} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre entreprise ar</Form.Label>
+                      <Form.Control type="text" name="afficher_titre_entreprise_ar" value={formData.afficher_titre_entreprise_ar} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre des documents en arabe</Form.Label>
+                      <Form.Control type="text" name="titre_documents_ar" value={formData.titre_documents_ar} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description en arabe</Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.description_ar}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist link image',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'description_ar')}
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                  <Button variant="success" type="submit">
+                    <i className="fas fa-save"></i> Enregistrer
+                  </Button>
+                </div>
+              </Form>
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="tab3">
+              <div className="text-end mb-3">
+                <Button variant="primary" onClick={() => console.log('Open document modal')}>
+                  <i className="fas fa-plus"></i> Nouveau document
+                </Button>
+              </div>
+              <p>Tableau des documents à implémenter ici (DataTable-like component).</p>
+            </Tab.Pane>
+          </Tab.Content>
+        </Tab.Container>
+      </Modal.Body>
+    </Modal>
+  );
+};
+
+
+
+
+
+---------------5
+const JobOfferModal = ({ show, handleClose, offre }) => {
+  const [activeTab, setActiveTab] = useState('tab1');
+  const [formData, setFormData] = useState({});
+  useEffect(() => {
+    if(offre) {
+      setFormData({
+        titre: offre.titre,
+        ref_type_annonce_id: offre.type_offre,
+        description: offre.description,
+        date_publication: offre.date_publication,
+        date_limite: offre.date_limite,
+        type_offre: offre.type_offre,
+        ref_lieu_id: offre.lieu,
+        ville: offre.lieu,
+        ville_ar: offre.ville_ar,
+        titre_documents: offre.titre_documents,
+        afficher_titre_entreprise: offre.afficher_titre_entreprise,
+        ref_categorie_id: offre.ref_categorie_id,
+        groupement_sepecial: offre.groupement_sepecial,
+        titre_groupement_special: offre.titre_groupement_special,
+        titre_groupement_special_arabe: offre.titre_groupement_special_arabe,
+        id: offre.id,
+        titre_ar: offre.titre_ar,
+        afficher_titre_entreprise_ar: offre.afficher_titre_entreprise_ar,
+        titre_documents_ar: offre.titre_documents_ar,
+        description_ar: offre.description_ar,
+        message_ar: offre.message_ar,
+      });
+    }
+  }, [offre]);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+
+  const saveJobOffer = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    try {
+        const payload = { ...formData };
+        const response = await axios.put(`http://localhost:8000/api/offres/${formData.id}/`, payload, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        setSaveSuccess(true);
+    } catch (error) {
+        setSaveError('Error saving data: ' + (error.response?.data?.detail || error.message));
+    } finally {
+        setIsSaving(false);
+    }
+};
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleEditorChange = (content, name) => {
+    setFormData({ ...formData, [name]: content });
+  };
+
+  const handleSubmit = (e, tab) => {
+    e.preventDefault();
+    console.log(`Submitting form for ${tab}:`, formData);
+    // Add API call here to submit data
+  };
+  
+
+  return (
+    <Modal show={show} onHide={handleClose} size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <b>Offre : <div dangerouslySetInnerHTML={{ __html: formData.titre }} /></b>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+          <Nav variant="tabs" className="main-tabs">
+            <Nav.Item>
+              <Nav.Link eventKey="tab1">
+                <i className="fa fa-info-circle"></i> Info
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="tab2">
+                <i className="fa fa-language"></i> Traduction en arabe
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="tab3">
+                <i className="far fa-file-pdf"></i> GED
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
+
+          <Tab.Content>
+            <Tab.Pane eventKey="tab1">
+              <Form onSubmit={(e) => handleSubmit(e, 'tab1')}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre <span className="text-danger">*</span></Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.titre}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'titre')}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Type <span className="text-danger">*</span></Form.Label>
+                  <Form.Select name="ref_type_annonce_id" value={formData.ref_type_annonce_id} onChange={handleInputChange}>
+                    <option value="1">Offres d'emploi</option>
+                    <option value="2">Consultants</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description <span className="text-danger">*</span></Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.description}
+                    init={{
+                      height: 445,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist link image',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'description')}
+                  />
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date de mise en ligne <span className="text-danger">*</span></Form.Label>
+                      <Form.Control type="date" name="date_publication" value={formData.date_publication} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date limite <span className="text-danger">*</span></Form.Label>
+                      <Form.Control type="" name="date_limite" value={formData.date_limite} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Type de l'offre</Form.Label>
+                      <Form.Select name="type_offre" value={formData.type_offre} onChange={handleInputChange}>
+                        <option value="1">National</option>
+                        <option value="2">International</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Lieu <span className="text-danger">*</span></Form.Label>
+                      <Form.Select name="ref_lieu_id" value={formData.ref_lieu_id} onChange={handleInputChange}>
+                        <option value="1">Hodh Charghi</option>
+                        <option value="2">Hodh Gharbi</option>
+                        <option value="3">Assaba</option>
+                        <option value="4">Gorgol</option>
+                        <option value="5">Brakna</option>
+                      </Form.Select>
+                      <Form.Control
+                        type="text"
+                        name="ville_ar"
+                        value={formData.ville_ar}
+                        onChange={handleInputChange}
+                        placeholder="Ville Arabe"
+                        className="mt-2"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre des documents</Form.Label>
+                      <Form.Control type="text" name="titre_documents" value={formData.titre_documents} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre entreprise</Form.Label>
+                      <Form.Control type="text" name="afficher_titre_entreprise" value={formData.afficher_titre_entreprise} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* New Fields */}
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Catégorie <span className="text-danger">*</span></Form.Label>
+                      <Form.Select name="ref_categorie_id" value={formData.ref_categorie_id} onChange={handleInputChange}>
+                        <option value="1">Standard</option>
+                        <option value="2">Dépôt</option>
+                        <option value="3">SAR</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Groupement spécial</Form.Label>
+                      <Form.Select name="groupement_sepecial" value={formData.groupement_sepecial} onChange={handleInputChange}>
+                        <option value="0">Non</option>
+                        <option value="1">Oui</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre groupement spécial</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="titre_groupement_special"
+                    value={formData.titre_groupement_special}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre groupement spécial arabe</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="titre_groupement_special_arabe"
+                    value={formData.titre_groupement_special_arabe}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                  <Button variant="success" type="submit">
+                    <i className="fas fa-save"></i> Enregistrer
+                  </Button>
+                </div>
+              </Form>
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="tab2">
+              <Form onSubmit={(e) => handleSubmit(e, 'tab2')}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre en arabe</Form.Label>
+                  <Form.Control type="text" name="titre_ar" value={formData.titre_ar} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre entreprise ar</Form.Label>
+                      <Form.Control type="text" name="afficher_titre_entreprise_ar" value={formData.afficher_titre_entreprise_ar} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre des documents en arabe</Form.Label>
+                      <Form.Control type="text" name="titre_documents_ar" value={formData.titre_documents_ar} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description en arabe</Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.description_ar}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist link image',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'description_ar')}
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                <Button variant="success" type="submit" disabled={isSaving}>
+                        <i className="fas fa-save"></i> {isSaving ? 'Saving...' : 'Save'}
+                    </Button>
+                </div>
+              </Form>
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="tab3">
+              <div className="text-end mb-3">
+                <Button variant="primary" onClick={() => console.log('Open document modal')}>
+                  <i className="fas fa-plus"></i> Nouveau document
+                </Button>
+              </div>
+              <p>Tableau des documents à implémenter ici (DataTable-like component).</p>
+            </Tab.Pane>
+          </Tab.Content>
+        </Tab.Container>
+      </Modal.Body>
+    </Modal>
+  );
+};

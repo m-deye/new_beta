@@ -1,0 +1,29 @@
+frontend/node_modules/
+frontend/build/
+
+# Fichiers compilés Python
+*.pyc
+*.pyo
+*.pyd
+
+
+
+# Virtual environments
+backend/env/
+venv/
+backend/env/
+env/
+backend/media/
+
+
+# Fichiers Python inutiles
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# fichiers d'environnement
+.env/

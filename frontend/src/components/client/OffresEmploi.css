@@ -1,0 +1,117 @@
+.btn-xs {
+  padding: 0px 0px;
+  font-size: 5px;
+  line-height: 1;
+}
+
+.main-tabs .nav-item {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  font-size: 16px;
+}
+
+.main-tabs .nav-link {
+  color: #4e73df !important; /* Bleu Bootstrap */
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.main-tabs .nav-link i {
+  margin-right: 5px; /* Ajout d'un espace entre l'icône et le texte */
+}
+
+.main-tabs .nav-link.active {
+  color: #000000 !important; /* Bleu plus foncé pour l'onglet actif */
+
+  text-decoration: none;
+}
+
+.main-tabs {
+  border-bottom: 1px solid #ddd; /* Bordure sous le nav */
+  margin-bottom: 0; /* Supprimez l'espace en dessous du nav */
+}
+
+.tab-content {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 20px;
+  margin-top: 0; /* Supprimez l'espace au-dessus de la tab-content */
+  border-top: none; /* Pour que la bordure sous nav se relie directement à celle de tab-content */
+}
+.row-custom {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+.row-custom .col-md-6 {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.row-controle {
+  margin-left: -35px;
+  margin-right: -25px;
+}
+
+.row-controle {
+  padding-left: 20px;
+  padding-right: 10px;
+}
+
+.message {
+  background-color: #5ebb61;
+  color: white;
+  padding: 15px 20px;
+  margin: 10px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 250px;
+  max-width: 350px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeInOut 30s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.form-label-custom {
+  font-size: 16px;
+  color: #858796;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+}
+
+.px-2 {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}

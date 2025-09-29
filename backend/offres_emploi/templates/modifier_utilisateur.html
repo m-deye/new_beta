@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-white">
+            <h4 class="mb-0">Modifier l'utilisateur : {{ utilisateur.username }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{form.as_p}}
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success">Enregistrer</button>
+                    <a href="{% url 'get_utilisateurs' %}" class="btn btn-secondary ml-2">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1528 @@
+{% extends "base.html" %}
+{% block content %}
+  <!-- Modale pour modifier les permissions -->
+  <div class="modal fade"
+       id="editPermissionsModal"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="editPermissionsModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editPermissionsModalLabel">Modifier les permissions</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="editPermissionsForm" method="post" action="">
+          {% csrf_token %}
+          <div class="modal-body">
+            <p>
+              <strong>Nom d'utilisateur :</strong>
+              <span id="edit-modal-username"></span>
+            </p>
+            <input type="hidden" name="user_id" id="edit-modal-user-id" />
+            <h6>Permissions actuelles :</h6>
+            <ul id="edit-modal-permissions-list" class="list-group mb-3">
+            </ul>
+            <h6>Ajouter ou retirer des permissions :</h6>
+            <select name="permissions"
+                    id="permissions-select"
+                    class="form-control"
+                    multiple
+                    style="height: 200px">
+              <!-- Les options seront remplies via AJAX -->
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Sauvegarder</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade"
+       id="permissionsModal"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="permissionsModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="permissionsModalLabel">Permissions de l'utilisateur</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>Nom d'utilisateur :</strong>
+            <span id="modal-permissions-username"></span>
+          </p>
+          <p>
+            <strong>Permissions :</strong>
+          </p>
+          <ul id="modal-permissions-list">
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <center>
+        <h1>Liste des Utilisateurs</h1>
+      </center>
+    </div>
+    <div class="d-flex justify-content-end mb-3">
+      {% if perms.gestion_utilisateur.add_utilisateurpersonnalise %}
+        {% comment %} <a href="{% url 'creer_utilisateur' %}" class="btn btn-primary">
+          <i class="fa fa-user-plus"></i> Ajouter un utilisateur
+        </a> {% endcomment %}
+        <button onclick="openUserModal()" class="btn btn-primary">
+          <i class="fa fa-user-plus"></i> Créer utilisateur
+        </button>
+      {% endif %}
+    </div>
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs" id="userTabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active"
+           id="all-tab"
+           data-toggle="tab"
+           href="#all"
+           role="tab"
+           aria-controls="all"
+           aria-selected="true">Tous</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="clients-tab"
+           data-toggle="tab"
+           href="#clients"
+           role="tab"
+           aria-controls="clients"
+           aria-selected="false">Clients</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="candidats-tab"
+           data-toggle="tab"
+           href="#candidats"
+           role="tab"
+           aria-controls="candidats"
+           aria-selected="false">Candidats</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="system-users-tab"
+           data-toggle="tab"
+           href="#system-users"
+           role="tab"
+           aria-controls="system-users"
+           aria-selected="false">Utilisateurs Système</a>
+      </li>
+    </ul>
+    <!-- Tab Content -->
+    <div class="tab-content" id="userTabContent">
+      <!-- All Users Tab -->
+      <div class="tab-pane fade show active"
+           id="all"
+           role="tabpanel"
+           aria-labelledby="all-tab">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered"
+                     id="dataTableAll"
+                     width="100%"
+                     cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for utilisateur in utilisateurs %}
+                    <tr>
+                      <td>{% if utilisateur.role.name == 'client' and utilisateur.client and utilisateur.client.libelle_fr %}{{ utilisateur.client.libelle_fr }}{% else %}{{ utilisateur.username }}{% endif %}</td>
+                      <td>{{ utilisateur.email }}</td>
+                      <td>{{ utilisateur.role.name }}</td>
+                      <td>
+                        {% if perms.gestion_utilisateur.valider_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'client' %}
+                            <form method="post"
+                                  action="{% url 'valider_utilisateur' utilisateur.id %}"
+                                  style="display: inline">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fa fa-check"></i>
+                              </button>
+                            </form>
+                          {% else %}
+                            <button class="btn btn-success btn-sm disabled">
+                              <i class="fa fa-check"></i>
+                            </button>
+                          {% endif %}
+                        {% endif %}
+                        {% if perms.gestion_utilisateur.change_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'client' %}
+                            <button onclick="openModifierModal({{ utilisateur.id }}, '{{ utilisateur.username|escapejs }}', '{{ utilisateur.email|escapejs }}')"
+                                   class="btn btn-warning btn-sm">
+                              <i class="fa fa-edit"></i>
+                            </button>
+                          {% elif utilisateur.role.name == 'candidat' %}
+                            <a href="{% url 'candidate_profile' utilisateur.id %}"
+                               class="btn btn-warning btn-sm">
+                              <i class="fa fa-edit"></i>
+                            </a>
+                          {% elif not utilisateur.role.name == 'candidat' and not utilisateur.role.name == 'client' %}
+                            <a href="#" class="btn btn-warning btn-sm disabled">
+                              <i class="fa fa-edit"></i>
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                        <form method="post"
+                              action="{% url 'supprimer_utilisateur' utilisateur.id %}"
+                              style="display: inline"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                          {% csrf_token %}
+                          {% if perms.gestion_utilisateur.delete_utilisateurpersonnalise %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                              <i class="fa fa-trash"></i>
+                            </button>
+                          {% endif %}
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Clients Tab -->
+      <div class="tab-pane fade"
+           id="clients"
+           role="tabpanel"
+           aria-labelledby="clients-tab">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered"
+                     id="dataTableClients"
+                     width="100%"
+                     cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for utilisateur in clients %}
+                    <tr>
+                      <td>{% if utilisateur.role.name == 'client' and utilisateur.client and utilisateur.client.libelle_fr %}{{ utilisateur.client.libelle_fr }}{% else %}{{ utilisateur.username }}{% endif %}</td>
+                      <td>{{ utilisateur.email }}</td>
+                      <td>{{ utilisateur.role.name }}</td>
+                      <td>
+                        {% if perms.gestion_utilisateur.valider_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'client' %}
+                            <form method="post"
+                                  action="{% url 'valider_utilisateur' utilisateur.id %}"
+                                  style="display: inline">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fa fa-check"></i>
+                              </button>
+                            </form>
+                          {% else %}
+                            <button class="btn btn-success btn-sm disabled">
+                              <i class="fa fa-check"></i>
+                            </button>
+                          {% endif %}
+                        {% endif %}
+                        {% if perms.gestion_utilisateur.change_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'client' %}
+                            <a href="{% url 'modifier_client' utilisateur.id %}"
+                               class="btn btn-warning btn-sm">
+                              <i class="fa fa-edit"></i>
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                        <form method="post"
+                              action="{% url 'supprimer_utilisateur' utilisateur.id %}"
+                              style="display: inline"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                          {% csrf_token %}
+                          {% if perms.gestion_utilisateur.delete_utilisateurpersonnalise %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                              <i class="fa fa-trash"></i>
+                            </button>
+                          {% endif %}
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Candidats Tab -->
+      <div class="tab-pane fade"
+           id="candidats"
+           role="tabpanel"
+           aria-labelledby="candidats-tab">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered"
+                     id="dataTableCandidats"
+                     width="100%"
+                     cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for utilisateur in candidats %}
+                    <tr>
+                      <td>{{ utilisateur.username }}</td>
+                      <td>{{ utilisateur.email }}</td>
+                      <td>{{ utilisateur.role.name }}</td>
+                      <td>
+                        {% if perms.gestion_utilisateur.valider_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'client' %}
+                            <form method="post"
+                                  action="{% url 'valider_utilisateur' utilisateur.id %}"
+                                  style="display: inline">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fa fa-check"></i>
+                              </button>
+                            </form>
+                          {% else %}
+                            <button class="btn btn-success btn-sm disabled">
+                              <i class="fa fa-check"></i>
+                            </button>
+                          {% endif %}
+                        {% endif %}
+                        {% if perms.gestion_utilisateur.change_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'candidat' %}
+                            <a href="{% url 'candidate_profile' utilisateur.id %}"
+                               class="btn btn-warning btn-sm">
+                              <i class="fa fa-edit"></i>
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                        <form method="post"
+                              action="{% url 'supprimer_utilisateur' utilisateur.id %}"
+                              style="display: inline"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                          {% csrf_token %}
+                          {% if perms.gestion_utilisateur.delete_utilisateurpersonnalise %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                              <i class="fa fa-trash"></i>
+                            </button>
+                          {% endif %}
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- System Users Tab -->
+      <div class="tab-pane fade"
+           id="system-users"
+           role="tabpanel"
+           aria-labelledby="system-users-tab">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered"
+                     id="dataTableSystemUsers"
+                     width="100%"
+                     cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for utilisateur in system_users %}
+                    <tr>
+                      <td>{{ utilisateur.username }}</td>
+                      <td>{{ utilisateur.email }}</td>
+                      <td>{{ utilisateur.role.name }}</td>
+                      <td>
+                        {% if perms.gestion_utilisateur.valider_utilisateurpersonnalise %}
+                          {% if utilisateur.role.name == 'client' %}
+                            <form method="post"
+                                  action="{% url 'valider_utilisateur' utilisateur.id %}"
+                                  style="display: inline">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fa fa-check"></i>
+                              </button>
+                            </form>
+                          {% else %}
+                            <button class="btn btn-success btn-sm disabled">
+                              <i class="fa fa-check"></i>
+                            </button>
+                          {% endif %}
+                        {% endif %}
+                        {% if perms.gestion_utilisateur.change_utilisateurpersonnalise %}
+                          {% if not utilisateur.role.name == 'candidat' and not utilisateur.role.name == 'client' %}
+                            <a href="#" class="btn btn-warning btn-sm disabled">
+                              <i class="fa fa-edit"></i>
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                        <form method="post"
+                              action="{% url 'supprimer_utilisateur' utilisateur.id %}"
+                              style="display: inline"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                          {% csrf_token %}
+                          {% if perms.gestion_utilisateur.delete_utilisateurpersonnalise %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                              <i class="fa fa-trash"></i>
+                            </button>
+                          {% endif %}
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modale pour afficher les détails de l'utilisateur -->
+  <div class="modal fade"
+       id="utilisateurModal"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="utilisateurModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="utilisateurModalLabel">Détails de l'utilisateur</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>Nom d'utilisateur :</strong> <span id="modal-username"></span>
+          </p>
+          <p>
+            <strong>Email :</strong> <span id="modal-email"></span>
+          </p>
+          <p>
+            <strong>Rôle :</strong> <span id="modal-role"></span>
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- jQuery et Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script type="text/javascript"
+          src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript"
+          src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+  $(document).ready(function() {
+      // Initialize DataTables for each tab
+      $('#dataTableAll').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": false,
+          "info": true,
+          "language": {
+              "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+          }
+      });
+      $('#dataTableClients').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": false,
+          "info": true,
+          "language": {
+              "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+          }
+      });
+      $('#dataTableCandidats').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": false,
+          "info": true,
+          "language": {
+              "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+          }
+      });
+      $('#dataTableSystemUsers').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": false,
+          "info": true,
+          "language": {
+              "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+          }
+      });
+
+      // Gestion de la modale des détails utilisateur
+      $('#utilisateurModal').on('show.bs.modal', function (event) {
+          var button = $(event.relatedTarget);
+          $('#modal-username').text(button.data('username'));
+          $('#modal-email').text(button.data('email'));
+          $('#modal-role').text(button.data('role'));
+      });
+
+      // Gestion de la modale des permissions
+      $('.permissions-btn').on('click', function() {
+          var userId = $(this).data('user-id');
+          $.ajax({
+              url: '/permissions/' + userId + '/',
+              method: 'GET',
+              success: function(data) {
+                  $('#modal-permissions-username').text(data.username);
+                  $('#modal-permissions-list').empty();
+                  if (data.permissions.length > 0) {
+                      data.permissions.forEach(function(perm) {
+                          $('#modal-permissions-list').append('<li>' + perm + '</li>');
+                      });
+                  } else {
+                      $('#modal-permissions-list').append('<li>Aucune permission spécifique</li>');
+                  }
+                  $('#permissionsModal').modal('show');
+              },
+              error: function() {
+                  alert('Erreur lors de la récupération des permissions.');
+              }
+          });
+      });
+
+      // Gestion de la modale de modification des permissions
+      $('.edit-permissions-btn').on('click', function() {
+          var userId = $(this).data('user-id');
+          var username = $(this).data('username');
+
+          $.ajax({
+              url: '/permissions/' + userId + '/',
+              method: 'GET',
+              success: function(data) {
+                  $('#edit-modal-username').text(data.username);
+                  $('#edit-modal-user-id').val(userId);
+                  $('#editPermissionsForm').attr('action', '/modifier_permissions/' + userId + '/');
+
+                  // Remplir la liste des permissions actuelles
+                  $('#edit-modal-permissions-list').empty();
+                  if (data.permissions.length > 0) {
+                      data.permissions.forEach(function(perm) {
+                          $('#edit-modal-permissions-list').append('<li class="list-group-item">' + perm + '</li>');
+                      });
+                  } else {
+                      $('#edit-modal-permissions-list').append('<li class="list-group-item">Aucune permission spécifique</li>');
+                  }
+
+                  // Remplir le sélecteur avec toutes les permissions disponibles
+                  $('#permissions-select').empty();
+                  data.all_permissions.forEach(function(perm) {
+                      var isSelected = data.user_permission_ids.includes(perm.id) ? 'selected' : '';
+                      $('#permissions-select').append('<option value="' + perm.id + '" ' + isSelected + '>' + perm.name + ' (' + perm.codename + ')</option>');
+                  });
+
+                  $('#editPermissionsModal').modal('show');
+              },
+              error: function() {
+                  alert('Erreur lors de la récupération des permissions.');
+              }
+          });
+      });
+
+      // Gestion de la soumission du formulaire de modification
+      $('#editPermissionsForm').on('submit', function(e) {
+          e.preventDefault();
+          $.ajax({
+              url: $(this).attr('action'),
+              method: 'POST',
+              data: $(this).serialize(),
+              success: function(response) {
+                  if (response.status === 'success') {
+                      $('#editPermissionsModal').modal('hide');
+                      Swal.fire({
+                          icon: 'success',
+                          title: 'Succès',
+                          text: response.message,
+                          toast: true,
+                          position: 'top',
+                          timer: 5000
+                      });
+                  }
+              },
+              error: function() {
+                  alert('Erreur lors de la mise à jour des permissions.');
+              }
+          });
+      });
+  });
+
+  // Gestion des messages SweetAlert
+  document.addEventListener('DOMContentLoaded', function () {
+      {% for message in messages %}
+          Swal.fire({
+              toast: true,
+              position: "top",
+              icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% endif %}",
+              title: "{{ message }}",
+              showConfirmButton: false,
+              timer: 5000,
+              timerProgressBar: true,
+              background: "#fff",
+              color: "#333"
+          });
+      {% endfor %}
+  });
+  </script>
+
+  <!-- Inclure le composant popup de création d'utilisateur -->
+  {% include 'creer_utilisateur_popup_component.html' %}
+
+  <!-- Modal de modification d'utilisateur -->
+  <div id="modifierModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Modifier l'utilisateur</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Onglets -->
+          <ul class="nav nav-tabs" id="modifierTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="utilisateur-tab" data-toggle="tab" href="#utilisateur" role="tab">
+                Utilisateur
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab">
+                Profile
+              </a>
+            </li>
+          </ul>
+
+          <div class="tab-content mt-3" id="modifierTabContent">
+            <!-- Onglet Utilisateur -->
+            <div class="tab-pane fade show active" id="utilisateur" role="tabpanel">
+              <form id="modifier-utilisateur-form">
+                {% csrf_token %}
+                <input type="hidden" id="modifier-user-id" name="user_id">
+                
+                <div class="form-group">
+                  <label for="modifier-username">Nom d'utilisateur</label>
+                  <input type="text" class="form-control" id="modifier-username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="modifier-email">Email</label>
+                  <input type="email" class="form-control" id="modifier-email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="modifier-password">Nouveau mot de passe (laisser vide si inchangé)</label>
+                  <input type="password" class="form-control" id="modifier-password" name="password">
+                </div>
+                
+                <div class="form-group">
+                  <label for="modifier-password-confirm">Confirmer le nouveau mot de passe</label>
+                  <input type="password" class="form-control" id="modifier-password-confirm" name="password_confirm">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+              </form>
+            </div>
+
+            <!-- Onglet Profile -->
+            <div class="tab-pane fade" id="profile" role="tabpanel">
+              <form id="modifier-profile-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" id="modifier-client-id" name="client_id">
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label class="required">Logo</label>
+                    <input type="file" name="logo" class="form-control">
+                    <div class="field-help required">Champ obligatoire</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label class="required">Libellé (Français)</label>
+                    <input type="text" name="libelle_fr" class="form-control" required>
+                    <div class="field-help required">Champ obligatoire</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Libellé (Arabe)</label>
+                    <input type="text" name="libelle_ar" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label class="required">Téléphone</label>
+                    <input type="text" name="tel" class="form-control" required>
+                    <div class="field-help required">Champ obligatoire</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label class="required">Email</label>
+                    <input type="email" name="email_client" class="form-control" required>
+                    <div class="field-help required">Champ obligatoire</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label class="required">Domaine</label>
+                    <input type="text" name="domaine" class="form-control" required>
+                    <div class="field-help required">Champ obligatoire</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label class="required">Type d'organisation</label>
+                    <select name="type_organisation" class="form-control" required>
+                      <option value="">---------</option>
+                      <option value="Sociétés/Organismes Internationaux">Sociétés/Organismes Internationaux</option>
+                      <option value="Banques">Banques</option>
+                      <option value="Instituts">Instituts</option>
+                      <option value="ONG & Associations">ONG & Associations</option>
+                      <option value="Sociétés Locales & Bureaux d'Etudes">Sociétés Locales & Bureaux d'Etudes</option>
+                      <option value="Projets & Administrations">Projets & Administrations</option>
+                    </select>
+                    <div class="field-help required">Champ obligatoire</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Adresse</label>
+                    <input type="text" name="adresse" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Lieu</label>
+                    <input type="text" name="lieu" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Fax</label>
+                    <input type="text" name="fax" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Nom du responsable</label>
+                    <input type="text" name="nom_responsable" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Fonction du responsable</label>
+                    <input type="text" name="fonction_responsable" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Email du responsable</label>
+                    <input type="email" name="email_responsable" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Téléphone du responsable</label>
+                    <input type="text" name="tel_responsable" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Site web</label>
+                    <input type="url" name="site_web" class="form-control">
+                    <div class="field-help">Champ optionnel</div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <div class="checkbox-container">
+                       <input type="checkbox" name="special" id="special-checkbox" class="form-check-input">
+                       <label for="special-checkbox" class="form-check-label">
+                         <strong>Compte spécial</strong>
+                        <div class="field-help">Cochez cette case si l'organisation a un statut spécial</div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Enregistrer le profil</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .modal-lg {
+      max-width: 900px;
+    }
+    
+    .form-group label.required::after {
+      content: " *";
+      color: #dc3545;
+      font-weight: bold;
+    }
+    
+    .form-control:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      outline: none;
+    }
+    
+          .checkbox-container {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        min-height: 60px;
+      }
+     
+     .checkbox-container:hover {
+       background-color: #e9ecef;
+       border-color: #007bff;
+    }
+    
+          .checkbox-container input[type="checkbox"] {
+        margin-right: 12px;
+        margin-top: 0;
+        width: 20px;
+        height: 20px;
+        accent-color: #007bff;
+        cursor: pointer;
+        flex-shrink: 0;
+        align-self: flex-start;
+      }
+    
+     .checkbox-container .form-check-label {
+      margin: 0;
+      font-weight: normal;
+      cursor: pointer;
+      color: #495057;
+       flex: 1;
+       line-height: 1.4;
+     }
+     
+     .checkbox-container .form-check-label strong {
+       color: #007bff;
+       font-weight: 600;
+    }
+    
+    .field-help {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+    
+    .field-help.required {
+      color: #dc3545;
+    }
+     
+     /* Styles pour la gestion des erreurs améliorée */
+     .is-invalid {
+       border-color: #dc3545 !important;
+       box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+     }
+     
+     .invalid-feedback {
+       display: block;
+       width: 100%;
+       margin-top: 0.25rem;
+       font-size: 0.875em;
+       color: #dc3545;
+       animation: fadeIn 0.3s ease-in;
+     }
+     
+     @keyframes fadeIn {
+       from { opacity: 0; transform: translateY(-10px); }
+       to { opacity: 1; transform: translateY(0); }
+     }
+     
+     /* Styles pour les messages d'erreur dans SweetAlert */
+     .error-summary {
+       text-align: left;
+       max-height: 300px;
+       overflow-y: auto;
+     }
+     
+     .error-section {
+       margin-bottom: 20px;
+       padding: 15px;
+       background-color: #fff3cd;
+       border: 1px solid #ffeaa7;
+       border-radius: 8px;
+     }
+     
+     .error-section h6 {
+       margin-bottom: 10px;
+       color: #856404;
+       font-weight: 600;
+     }
+     
+     .error-section h6 i {
+       margin-right: 8px;
+     }
+     
+     .error-list {
+       margin: 0;
+       padding-left: 20px;
+       list-style-type: none;
+     }
+     
+     .error-list li {
+       margin-bottom: 8px;
+       padding: 8px 12px;
+       background-color: #fff;
+       border-left: 4px solid #ffc107;
+       border-radius: 4px;
+       font-size: 14px;
+       line-height: 1.4;
+     }
+     
+     .error-list li strong {
+       color: #495057;
+       font-weight: 600;
+     }
+     
+     /* Animation pour les champs avec erreur */
+     .is-invalid {
+       animation: shake 0.5s ease-in-out;
+     }
+     
+     @keyframes shake {
+       0%, 100% { transform: translateX(0); }
+       25% { transform: translateX(-5px); }
+       75% { transform: translateX(5px); }
+     }
+     
+     /* Styles pour l'indicateur de chargement */
+     .swal2-popup {
+       border-radius: 12px;
+     }
+     
+     .swal2-title {
+       color: #495057;
+       font-weight: 600;
+     }
+     
+     .swal2-content {
+       color: #6c757d;
+     }
+     
+     /* Styles pour les onglets avec erreurs */
+     .nav-tabs .nav-link.has-errors {
+       position: relative;
+     }
+     
+     .nav-tabs .nav-link.has-errors::after {
+       content: "!";
+       position: absolute;
+       top: 5px;
+       right: 10px;
+       background-color: #dc3545;
+       color: white;
+       border-radius: 50%;
+       width: 18px;
+       height: 18px;
+       font-size: 12px;
+       font-weight: bold;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       animation: pulse 2s infinite;
+     }
+     
+     @keyframes pulse {
+       0% { transform: scale(1); }
+       50% { transform: scale(1.1); }
+       100% { transform: scale(1); }
+     }
+  </style>
+
+  <script>
+    // Fonction pour ouvrir le modal de modification
+    function openModifierModal(userId, username, email) {
+       // Nettoyer les erreurs précédentes
+       clearFieldErrors();
+       
+      // Remplir les champs avec les données actuelles
+      document.getElementById('modifier-user-id').value = userId;
+      document.getElementById('modifier-username').value = username;
+      document.getElementById('modifier-email').value = email;
+       
+       // Réinitialiser le checkbox special
+       const specialCheckbox = document.getElementById('special-checkbox');
+       if (specialCheckbox) {
+         specialCheckbox.checked = false;
+       }
+      
+      // Charger les données du profil client
+      loadClientProfile(userId);
+      
+      // Ouvrir le modal
+      $('#modifierModal').modal('show');
+    }
+    
+    // Fonction pour charger les données du profil client
+    function loadClientProfile(userId) {
+      console.log('Chargement du profil pour l\'utilisateur:', userId);
+      fetch(`/gestion_utilisateur/api/client-profile/${userId}/`)
+        .then(response => {
+          console.log('Response status:', response.status);
+          return response.json();
+        })
+        .then(data => {
+          console.log('Données reçues:', data);
+          if (data.success) {
+            console.log('Client data:', data.client);
+            
+            // Remplir les champs du profil avec des sélecteurs plus spécifiques
+            const clientIdField = document.getElementById('modifier-client-id');
+            if (clientIdField) {
+              clientIdField.value = data.client.id;
+              console.log('Client ID rempli:', data.client.id);
+            }
+            
+            // Utiliser des sélecteurs plus spécifiques pour éviter les conflits
+            const profileForm = document.getElementById('modifier-profile-form');
+            if (profileForm) {
+              // Libellé français
+              const libelleFrField = profileForm.querySelector('input[name="libelle_fr"]');
+              if (libelleFrField) {
+                libelleFrField.value = data.client.libelle_fr || '';
+                console.log('Libellé FR rempli:', data.client.libelle_fr);
+              }
+              
+              // Libellé arabe
+              const libelleArField = profileForm.querySelector('input[name="libelle_ar"]');
+              if (libelleArField) {
+                libelleArField.value = data.client.libelle_ar || '';
+                console.log('Libellé AR rempli:', data.client.libelle_ar);
+              }
+              
+              // Téléphone
+              const telField = profileForm.querySelector('input[name="tel"]');
+              if (telField) {
+                telField.value = data.client.tel || '';
+                console.log('Téléphone rempli:', data.client.tel);
+              }
+              
+              // Email (dans le profil, pas dans l'onglet utilisateur)
+              const emailField = profileForm.querySelector('input[name="email_client"]');
+              if (emailField) {
+                emailField.value = data.client.email_client || '';
+                console.log('Email profil rempli:', data.client.email_client);
+              }
+              
+              // Domaine
+              const domaineField = profileForm.querySelector('input[name="domaine"]');
+              if (domaineField) {
+                domaineField.value = data.client.domaine || '';
+                console.log('Domaine rempli:', data.client.domaine);
+              }
+              
+              // Type d'organisation
+              const typeOrgField = profileForm.querySelector('select[name="type_organisation"]');
+              if (typeOrgField) {
+                typeOrgField.value = data.client.type_organisation || '';
+                console.log('Type organisation rempli:', data.client.type_organisation);
+              }
+              
+              // Adresse
+              const adresseField = profileForm.querySelector('input[name="adresse"]');
+              if (adresseField) {
+                adresseField.value = data.client.adresse || '';
+                console.log('Adresse remplie:', data.client.adresse);
+              }
+              
+              // Lieu
+              const lieuField = profileForm.querySelector('input[name="lieu"]');
+              if (lieuField) {
+                lieuField.value = data.client.lieu || '';
+                console.log('Lieu rempli:', data.client.lieu);
+              }
+              
+              // Fax
+              const faxField = profileForm.querySelector('input[name="fax"]');
+              if (faxField) {
+                faxField.value = data.client.fax || '';
+                console.log('Fax rempli:', data.client.fax);
+              }
+              
+              // Nom responsable
+              const nomRespField = profileForm.querySelector('input[name="nom_responsable"]');
+              if (nomRespField) {
+                nomRespField.value = data.client.nom_responsable || '';
+                console.log('Nom responsable rempli:', data.client.nom_responsable);
+              }
+              
+              // Fonction responsable
+              const fonctionRespField = profileForm.querySelector('input[name="fonction_responsable"]');
+              if (fonctionRespField) {
+                fonctionRespField.value = data.client.fonction_responsable || '';
+                console.log('Fonction responsable remplie:', data.client.fonction_responsable);
+              }
+              
+              // Email responsable
+              const emailRespField = profileForm.querySelector('input[name="email_responsable"]');
+              if (emailRespField) {
+                emailRespField.value = data.client.email_responsable || '';
+                console.log('Email responsable rempli:', data.client.email_responsable);
+              }
+              
+              // Téléphone responsable
+              const telRespField = profileForm.querySelector('input[name="tel_responsable"]');
+              if (telRespField) {
+                telRespField.value = data.client.tel_responsable || '';
+                console.log('Téléphone responsable rempli:', data.client.tel_responsable);
+              }
+              
+              // Site web
+              const siteWebField = profileForm.querySelector('input[name="site_web"]');
+              if (siteWebField) {
+                siteWebField.value = data.client.site_web || '';
+                console.log('Site web rempli:', data.client.site_web);
+              }
+              
+                             // Special
+               const specialField = profileForm.querySelector('#special-checkbox');
+               if (specialField) {
+                 // Convertir la valeur en booléen et cocher/décocher
+                 const isSpecial = Boolean(data.client.special);
+                 specialField.checked = isSpecial;
+                 console.log('Special rempli:', data.client.special, '-> checked:', isSpecial);
+               }
+            } else {
+              console.error('Formulaire de profil non trouvé');
+            }
+            
+            console.log('Champs remplis avec succès');
+          } else {
+            console.error('Erreur lors du chargement du profil:', data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement du profil:', error);
+        });
+    }
+    
+         // Fonction pour soumettre les deux formulaires ensemble
+     function submitBothForms() {
+       // Afficher un indicateur de chargement
+       Swal.fire({
+         title: 'Modification en cours...',
+         text: 'Veuillez patienter pendant la sauvegarde',
+         allowOutsideClick: false,
+         allowEscapeKey: false,
+         showConfirmButton: false,
+         didOpen: () => {
+           Swal.showLoading();
+         }
+       });
+       
+       const userForm = document.getElementById('modifier-utilisateur-form');
+       const profileForm = document.getElementById('modifier-profile-form');
+       
+       // Récupérer les données des deux formulaires
+       const userFormData = new FormData(userForm);
+       const profileFormData = new FormData(profileForm);
+       
+       // Combiner les données
+       const combinedFormData = new FormData();
+       
+       // Debug: Afficher les données utilisateur
+       console.log('=== DEBUG FORMULAIRES ===');
+       console.log('Données utilisateur:');
+       for (let [key, value] of userFormData.entries()) {
+         console.log(`  ${key}: '${value}'`);
+         combinedFormData.append(key, value);
+       }
+       
+       console.log('Données profil:');
+       for (let [key, value] of profileFormData.entries()) {
+         console.log(`  ${key}: '${value}'`);
+         combinedFormData.append(key, value);
+       }
+       
+       // Toujours utiliser update_both pour traiter les deux onglets
+       combinedFormData.append('action', 'update_both');
+       
+       // Soumettre les données combinées
+      fetch('/gestion_utilisateur/api/modifier-utilisateur/', {
+        method: 'POST',
+         body: combinedFormData,
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+         // Fermer l'indicateur de chargement
+         Swal.close();
+         
+        if (data.success) {
+           // Succès avec animation
+          Swal.fire({
+            icon: 'success',
+             title: 'Modification réussie !',
+            text: data.message,
+             showConfirmButton: false,
+             timer: 2000,
+             timerProgressBar: true,
+             customClass: {
+               popup: 'animated fadeInDown'
+             }
+           });
+           
+           // Fermer le modal et recharger
+          $('#modifierModal').modal('hide');
+          setTimeout(() => {
+            location.reload();
+           }, 2000);
+        } else {
+           // Gérer les erreurs avec une interface améliorée
+           handleValidationErrors(data);
+        }
+      })
+      .catch(error => {
+         // Fermer l'indicateur de chargement
+         Swal.close();
+         
+         console.error('Erreur réseau:', error);
+        Swal.fire({
+          icon: 'error',
+           title: 'Erreur de connexion',
+           text: 'Impossible de contacter le serveur. Vérifiez votre connexion internet et réessayez.',
+           confirmButtonText: 'Réessayer',
+           showCancelButton: true,
+           cancelButtonText: 'Annuler',
+           customClass: {
+             popup: 'animated shake'
+           }
+         }).then((result) => {
+           if (result.isConfirmed) {
+             submitBothForms();
+           }
+        });
+      });
+     }
+     
+     // Fonction améliorée pour gérer les erreurs de validation
+     function handleValidationErrors(data) {
+       let hasUserErrors = false;
+       let hasProfileErrors = false;
+       let userErrorFields = [];
+       let profileErrorFields = [];
+       
+       // Analyser les erreurs
+       if (data.errors) {
+         if (data.errors.user_errors) {
+           hasUserErrors = true;
+           userErrorFields = Object.keys(data.errors.user_errors);
+         }
+         if (data.errors.profile_errors) {
+           hasProfileErrors = true;
+           profileErrorFields = Object.keys(data.errors.profile_errors);
+         }
+       }
+       
+       // Créer un message d'erreur structuré
+       let errorHtml = '<div class="error-summary">';
+       
+       if (hasUserErrors) {
+         errorHtml += '<div class="error-section">';
+         errorHtml += '<h6><i class="fa fa-user text-warning"></i> Onglet Utilisateur</h6>';
+         errorHtml += '<ul class="error-list">';
+         Object.keys(data.errors.user_errors).forEach(field => {
+           const fieldName = getFieldDisplayName(field);
+           errorHtml += `<li><strong>${fieldName}:</strong> ${data.errors.user_errors[field].join(', ')}</li>`;
+         });
+         errorHtml += '</ul></div>';
+       }
+       
+       if (hasProfileErrors) {
+         errorHtml += '<div class="error-section">';
+         errorHtml += '<h6><i class="fa fa-building text-warning"></i> Onglet Profile</h6>';
+         errorHtml += '<ul class="error-list">';
+         Object.keys(data.errors.profile_errors).forEach(field => {
+           const fieldName = getFieldDisplayName(field);
+           errorHtml += `<li><strong>${fieldName}:</strong> ${data.errors.profile_errors[field].join(', ')}</li>`;
+         });
+         errorHtml += '</ul></div>';
+       }
+       
+       errorHtml += '</div>';
+       
+       // Afficher l'erreur avec une interface améliorée
+          Swal.fire({
+         icon: 'warning',
+         title: 'Erreurs de validation détectées',
+         html: errorHtml,
+         confirmButtonText: 'Corriger les erreurs',
+         showCancelButton: true,
+         cancelButtonText: 'Annuler',
+         customClass: {
+           popup: 'animated fadeIn',
+           content: 'text-left'
+         },
+         showClass: {
+           popup: 'animate__animated animate__fadeInDown'
+         }
+       }).then((result) => {
+         if (result.isConfirmed) {
+           // Nettoyer les anciennes erreurs
+           clearFieldErrors();
+           
+           // Marquer les champs avec erreurs
+           markErrorFields(data.errors);
+           
+           // Basculer vers l'onglet approprié
+           if (hasUserErrors && !hasProfileErrors) {
+             $('#utilisateur-tab').tab('show');
+             // Focus sur le premier champ avec erreur
+             if (userErrorFields.length > 0) {
+               focusOnFirstError('utilisateur', userErrorFields[0]);
+             }
+           } else if (hasProfileErrors && !hasUserErrors) {
+             $('#profile-tab').tab('show');
+             // Focus sur le premier champ avec erreur
+             if (profileErrorFields.length > 0) {
+               focusOnFirstError('profile', profileErrorFields[0]);
+             }
+           } else if (hasUserErrors && hasProfileErrors) {
+             // Commencer par l'onglet utilisateur
+             $('#utilisateur-tab').tab('show');
+             if (userErrorFields.length > 0) {
+               focusOnFirstError('utilisateur', userErrorFields[0]);
+             }
+           }
+         }
+       });
+     }
+     
+     // Fonction pour obtenir le nom d'affichage d'un champ
+     function getFieldDisplayName(fieldName) {
+       const fieldNames = {
+         'username': 'Nom d\'utilisateur',
+         'email': 'Email',
+         'password': 'Mot de passe',
+         'password_confirm': 'Confirmation du mot de passe',
+         'libelle_fr': 'Libellé (Français)',
+         'libelle_ar': 'Libellé (Arabe)',
+         'tel': 'Téléphone',
+         'domaine': 'Domaine',
+         'type_organisation': 'Type d\'organisation',
+         'adresse': 'Adresse',
+         'lieu': 'Lieu',
+         'fax': 'Fax',
+         'nom_responsable': 'Nom du responsable',
+         'fonction_responsable': 'Fonction du responsable',
+         'email_responsable': 'Email du responsable',
+         'tel_responsable': 'Téléphone du responsable',
+         'site_web': 'Site web',
+         'logo': 'Logo'
+       };
+       return fieldNames[fieldName] || fieldName;
+     }
+     
+     // Fonction pour marquer les champs avec erreurs
+     function markErrorFields(errors) {
+       // Marquer les erreurs utilisateur
+       if (errors.user_errors) {
+         Object.keys(errors.user_errors).forEach(field => {
+           const fieldElement = document.querySelector(`#modifier-${field}`);
+           if (fieldElement) {
+             fieldElement.classList.add('is-invalid');
+             
+             // Ajouter le message d'erreur
+             const errorDiv = document.createElement('div');
+             errorDiv.className = 'invalid-feedback';
+             errorDiv.textContent = errors.user_errors[field].join(', ');
+             
+             // Supprimer l'ancien message d'erreur s'il existe
+             const oldError = fieldElement.parentNode.querySelector('.invalid-feedback');
+             if (oldError) {
+               oldError.remove();
+             }
+             
+             fieldElement.parentNode.appendChild(errorDiv);
+           }
+         });
+       }
+       
+       // Marquer les erreurs profil
+       if (errors.profile_errors) {
+         Object.keys(errors.profile_errors).forEach(field => {
+           const profileForm = document.getElementById('modifier-profile-form');
+           const fieldElement = profileForm.querySelector(`[name="${field}"]`);
+           if (fieldElement) {
+             fieldElement.classList.add('is-invalid');
+             
+             // Ajouter le message d'erreur
+             const errorDiv = document.createElement('div');
+             errorDiv.className = 'invalid-feedback';
+             errorDiv.textContent = errors.profile_errors[field].join(', ');
+             
+             // Supprimer l'ancien message d'erreur s'il existe
+             const oldError = fieldElement.parentNode.querySelector('.invalid-feedback');
+             if (oldError) {
+               oldError.remove();
+             }
+             
+             fieldElement.parentNode.appendChild(errorDiv);
+           }
+         });
+       }
+     }
+     
+     // Fonction pour nettoyer les erreurs de champs
+     function clearFieldErrors() {
+       // Nettoyer les erreurs utilisateur
+       const userForm = document.getElementById('modifier-utilisateur-form');
+       userForm.querySelectorAll('.is-invalid').forEach(field => {
+         field.classList.remove('is-invalid');
+       });
+       userForm.querySelectorAll('.invalid-feedback').forEach(error => {
+         error.remove();
+       });
+       
+       // Nettoyer les erreurs profil
+       const profileForm = document.getElementById('modifier-profile-form');
+       profileForm.querySelectorAll('.is-invalid').forEach(field => {
+         field.classList.remove('is-invalid');
+       });
+       profileForm.querySelectorAll('.invalid-feedback').forEach(error => {
+         error.remove();
+       });
+     }
+     
+     // Fonction pour focus sur le premier champ avec erreur
+     function focusOnFirstError(tab, fieldName) {
+          setTimeout(() => {
+         let fieldElement;
+         
+         if (tab === 'utilisateur') {
+           fieldElement = document.querySelector(`#modifier-${fieldName}`);
+         } else if (tab === 'profile') {
+           const profileForm = document.getElementById('modifier-profile-form');
+           fieldElement = profileForm.querySelector(`[name="${fieldName}"]`);
+         }
+         
+         if (fieldElement) {
+           fieldElement.focus();
+           fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+         }
+       }, 300);
+     }
+    
+         // Gestion du formulaire de modification utilisateur
+     document.getElementById('modifier-utilisateur-form').addEventListener('submit', function(e) {
+       e.preventDefault();
+       submitBothForms();
+     });
+     
+     // Gestion du formulaire de modification profil
+     document.getElementById('modifier-profile-form').addEventListener('submit', function(e) {
+       e.preventDefault();
+       submitBothForms();
+     });
+     
+     // Nettoyer automatiquement les erreurs quand l'utilisateur corrige les champs
+     document.addEventListener('input', function(e) {
+       if (e.target.classList.contains('is-invalid')) {
+         e.target.classList.remove('is-invalid');
+         const errorDiv = e.target.parentNode.querySelector('.invalid-feedback');
+         if (errorDiv) {
+           errorDiv.remove();
+         }
+       }
+     });
+     
+     // Nettoyer les erreurs lors du changement d'onglet
+     document.querySelectorAll('[data-toggle="tab"]').forEach(tab => {
+       tab.addEventListener('shown.bs.tab', function(e) {
+         // Nettoyer les erreurs de l'onglet précédent
+         clearFieldErrors();
+      });
+    });
+     
+     // Améliorer l'interaction avec le checkbox special
+     document.addEventListener('DOMContentLoaded', function() {
+       const specialCheckbox = document.getElementById('special-checkbox');
+       if (specialCheckbox) {
+         // Ajouter un effet visuel lors du clic
+         specialCheckbox.addEventListener('change', function() {
+           const container = this.closest('.checkbox-container');
+           if (this.checked) {
+             container.style.backgroundColor = '#d4edda';
+             container.style.borderColor = '#28a745';
+           } else {
+             container.style.backgroundColor = '#f8f9fa';
+             container.style.borderColor = '#dee2e6';
+           }
+         });
+       }
+     });
+  </script>
+{% endblock %}

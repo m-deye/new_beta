@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Paramètres Généraux</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="row">
+            <!-- Partie française -->
+            <div class="col-md-6">
+                <h5 class="mb-3">En Français</h5>
+
+                <div class="mb-3">
+                    <label for="id_nombreoffres" class="form-label">Nombre d'offres</label>
+                    {{ form.nombreoffres|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_nombreapples" class="form-label">Nombre d'appels</label>
+                    {{ form.nombreapples|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_nombreavis" class="form-label">Nombre d'avis</label>
+                    {{ form.nombreavis|add_class:"form-control" }}
+                </div>
+            </div>
+
+            <!-- Partie arabe -->
+            <div class="col-md-6">
+                <h5 class="mb-3 text-end">باللغة العربية</h5>
+
+                <div class="mb-3">
+                    <label for="id_nombreoffresAr" class="form-label d-block text-end">عدد الوظائف</label>
+                    {{ form.nombreoffresAr|add_class:"form-control text-end" }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_nombreapplesAr" class="form-label d-block text-end">عدد طلبات العروض</label>
+                    {{ form.nombreapplesAr|add_class:"form-control text-end" }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_nombreavisAr" class="form-label d-block text-end">عدد الإشعارات</label>
+                    {{ form.nombreavisAr|add_class:"form-control text-end" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

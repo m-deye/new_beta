@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Bouton pour ouvrir la modale -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#offreModal">
+    Voir les détails de l'offre
+</button>
+
+<!-- Modale -->
+<div class="modal fade" id="offreModal" tabindex="-1" role="dialog" aria-labelledby="offreModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="offreModalLabel">{{ offre.titre }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Type d'offre :</strong> {{ offre.type_offre }}</p>
+                <p><strong>Description :</strong> {{ offre.description }}</p>
+                <p><strong>Date limite :</strong> {{ offre.date_limite }}</p>
+                <p><strong>Lieu :</strong> {{ offre.lieu }}</p>
+                <p><strong>Statut :</strong> {{ offre.si_publier|yesno:"Publiée,Non publiée" }}</p>
+
+                <h2>Documents associés</h2>
+                <ul>
+                    {% if documents %}
+                        Pour plus d'informations, consultez le lien ci-après :
+                    {% endif %}
+                    {% for document in documents %}
+                        <li>
+                            <a href="{{ document.piece_join.url }}" target="_blank">{{ document.titre_document }}</a>
+                        </li>
+                    {% empty %}
+                        <li>Aucun document associé.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <a href="{% url 'accueil' %}" class="btn btn-primary">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<!-- Dans base.html -->
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

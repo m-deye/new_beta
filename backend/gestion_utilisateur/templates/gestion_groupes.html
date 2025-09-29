@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Gestion des Groupes et Permissions</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Formulaire de création de groupe -->
+    <div class="card mb-4">
+        <div class="card-header">Créer un nouveau groupe</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Nom du groupe:</label>
+                    <input type="text" name="nom_groupe" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Permissions:</label>
+                    <select multiple name="permissions" class="form-control">
+                        {% for modele in modeles %}
+                            <optgroup label="{{ modele.name }}">
+                                {% for perm in permissions %}
+                                    {% if perm.content_type.model == modele.model_name %}
+                                        <option value="{{ perm.id }}">{{ perm.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" name="action" value="creer_groupe" class="btn btn-primary">Créer le groupe</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Liste des groupes existants -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Groupe</th>
+                <th>Permissions</th>
+                <th>Utilisateurs</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for groupe in groupes %}
+            <tr>
+                <td>{{ groupe.name }}</td>
+                <td>
+                    {% for perm in groupe.permissions.all %}
+                        {{ perm.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for user in groupe.user_set.all %}
+                        {{ user.username }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    <!-- Ajouter un utilisateur -->
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="groupe_id" value="{{ groupe.id }}">
+                        <select name="utilisateur_id">
+                            {% for user in utilisateurs %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" name="action" value="ajouter_utilisateur" class="btn btn-sm btn-success">Ajouter</button>
+                    </form>
+                    
+                    <!-- Retirer un utilisateur -->
+                    {% for user in groupe.user_set.all %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="groupe_id" value="{{ groupe.id }}">
+                        <input type="hidden" name="utilisateur_id" value="{{ user.id }}">
+                        <button type="submit" name="action" value="retirer_utilisateur" class="btn btn-sm btn-warning">Retirer {{ user.username }}</button>
+                    </form>
+                    {% endfor %}
+                    
+                    <!-- Supprimer le groupe -->
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="groupe_id" value="{{ groupe.id }}">
+                        <button type="submit" name="action" value="supprimer_groupe" class="btn btn-sm btn-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

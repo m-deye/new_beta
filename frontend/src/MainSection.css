@@ -1,0 +1,419 @@
+/* Layout principal */
+.main-container {
+  display: grid;
+  grid-template-columns: 6fr 3fr 6fr; /* Colonnes de largeurs différentes */
+  gap: 0px;
+  padding-left: 15px;
+  padding-right: 15px;
+
+  background-color: #ffffff;
+  box-sizing: border-box;
+  margin-top: -460px; /* Espace en haut entre le conteneur et l'écran */
+  margin-left: 60px; /* Centrer horizontalement si nécessaire */
+  margin-right: 60px; /* Centrer horizontalement si nécessaire */
+}
+
+.section.offres-emploi {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Assurez-vous que la section prend toute la hauteur disponible */
+}
+
+.card-container {
+  flex-grow: 1; /* Le contenu prend tout l'espace disponible */
+  padding: 15px;
+}
+
+.btn {
+  display: inline-block;
+  text-align: center;
+  background-color: #4e73df;
+  color: #ffffff;
+  padding: 89px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.btn:hover {
+  background-color: #3b5bbf;
+}
+
+/* Style pour les cartes */
+/* Style pour les cartes */
+.card-body {
+  width: 285px;
+  background-color: #ffffff;
+  padding: 2px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Retirer les marges gauche et droite pour éviter un espace entre les colonnes */
+  margin-left: 0px;
+  margin-right: 0px;
+  position: relative;
+}
+
+/* Appliquer un décalage spécifique à une carte particulière */
+.card-body.special-card {
+  transform: translateY(-10px);
+}
+
+/* Appliquer un décalage spécifique à une carte particulière */
+.card-body.special-card {
+  transform: translateY(-10px);
+  /* Décaler la carte vers le bas */
+}
+
+/* Styles spécifiques pour la colonne Appels d'Offres */
+.appels-offres {
+  max-width: 500px; /* Largeur maximale pour Appels d'Offres */
+  margin-right: 0px;
+  margin-bottom: 30px;
+}
+
+/* Styles spécifiques pour la colonne Offres d'Emploi */
+.offres-emploi {
+  max-width: 600px; /* Largeur maximale pour Offres d'Emploi */
+}
+
+/* Styles spécifiques pour la colonne Avis & Infos */
+.avis-infos {
+  max-width: 500px; /* Largeur maximale pour Avis & Infos */
+}
+
+/* Titres des sections */
+.titrecol {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.titrecol a {
+  color: #4e73df;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.titrecol a:hover {
+  text-decoration: underline;
+}
+
+/* Liste des offres */
+.section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.appels-offres1 {
+  margin-bottom: 3px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid #ffffff;
+  padding: 2px;
+  border-radius: 5px;
+  padding-left: 2px; /* Ajouter de l'espace à gauche (en pixels) */
+  box-sizing: border-box;
+  margin-right: -4px;
+}
+
+.appels-offres2 {
+  margin-bottom: 3px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid #ffffff;
+  padding: 2px;
+  border-radius: 5px;
+  padding-left: 2px; /* Ajouter de l'espace à gauche (en pixels) */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  margin-left: -4px;
+}
+.avis-infos {
+  margin-left: px;
+}
+
+/* Conteneur flex pour l'image et le texte */
+.logo-text-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Style de l'image */
+.imgCard {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Conteneur du texte */
+.post-card-content {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #0c74cc;
+}
+
+/* Conteneur pour le titre et le texte Consultants */
+.offres-emploi-header {
+  display: flex;
+  justify-content: space-between; /* Aligner les éléments aux extrémités */
+  align-items: center; /* Centrer verticalement */
+  padding: 10px; /* Espace intérieur */
+  background-color: #dee7ef; /* Couleur de fond de la colonne */
+}
+
+/* Style pour le titre "Offres d'emploi" */
+.offres-emploi-title {
+  color: #ff9900; /* Couleur orange pour "Offres d'emploi" */
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Style pour le texte "Consultants" */
+.consultants-text {
+  color: #0c74cc; /* Couleur bleue pour "Consultants" */
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Style pour le texte de l'en-tête (Avis de report) */
+.post-card-heading {
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: 5px;
+}
+
+/* .post-card-heading span {
+    color: rgb(224, 62, 45);
+  } */
+
+.post-card-heading strong {
+  font-weight: bold;
+}
+
+/* Bouton "Voir la liste complète" */
+.btn {
+  display: block;
+  text-align: center;
+  background-color: #4e73df;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.btn:hover {
+  background-color: #3b5bbf;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr; /* Une seule colonne sur les petits écrans */
+  }
+}
+
+/* Section Appels d'Offres */
+.section.appels-offres {
+  background-color: #ffffff; /* Fond blanc */
+  border: 5px solid #ffffff; /* Bordure plus épaisse */
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre plus prononcée */
+  border-radius: 5px;
+}
+
+.section.avis-infos {
+  background-color: #ffffff; /* Fond blanc */
+  border: 5px solid #ffffff; /* Bordure plus épaisse */
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre plus prononcée */
+}
+
+/* Titre de la section */
+.section-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Sous-titre de la section */
+.section-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Conteneur pour chaque offre */
+.offre-item {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f9f9f9; /* Fond gris très clair pour les éléments de liste */
+  border: 1px solid #ddd; /* Bordure légère */
+  border-radius: 8px; /* Coins arrondis */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre légère */
+}
+
+/* Titre de l'offre */
+.offre-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0c74cc; /* Couleur bleue pour le titre */
+  margin-bottom: 10px;
+}
+
+/* Description de l'offre */
+.offre-description {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Date limite de l'offre */
+.offre-date {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Texte en rouge pour la date limite */
+.text-danger {
+  color: rgb(224, 62, 45); /* Couleur rouge pour la date limite */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
+  .offre-title {
+    font-size: 1rem;
+  }
+
+  .offre-description {
+    font-size: 0.9rem;
+  }
+
+  .offre-date {
+    font-size: 0.8rem;
+  }
+}
+
+.ben-emploi {
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  width: 100%; /* Makes the button full-width on smaller screens */
+  max-width: 1000px; /* Limits the button width on larger screens */
+  text-align: center;
+}
+
+list-container {
+  list-style: none;
+  padding: 0px;
+  margin: 0;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.list-item {
+  display: block;
+  padding: 20px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  min-height: 200px; /* Adjust as needed */
+}
+
+.logo-text-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-container {
+  flex-shrink: 0;
+}
+
+.imgCard {
+  width: 50px; /* Adjust the size of the image */
+  height: 50px;
+  object-fit: cover;
+}
+
+.post-card-content {
+  flex-grow: 1;
+}
+
+.post-card-heading {
+  margin-top: 10px;
+}
+
+.post-card-limit {
+  display: flex;
+}
+
+@media (max-width: 1024px) {
+  .main-container {
+    grid-template-columns: 1fr; /* Une colonne sur les écrans plus petits */
+    gap: px; /* Ajouter un espace entre les sections */
+    padding: 10px; /* Réduire les marges latérales */
+  }
+
+  .appels-offres,
+  .offres-emploi,
+  .avis-infos {
+    max-width: 100%; /* Adapter à la largeur disponible */
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .card-body {
+    width: 100%; /* Les cartes occupent toute la largeur */
+    margin: 0 auto; /* Centrer les cartes */
+  }
+}
+
+@media (max-width: 768px) {
+  .offres-emploi-header {
+    flex-direction: column; /* Les titres passent sur deux lignes */
+    align-items: flex-start; /* Aligner à gauche */
+  }
+
+  .imgCard {
+    width: 40px; /* Réduire la taille des images */
+    height: 40px;
+  }
+
+  .btn {
+    font-size: 0.8rem; /* Réduire la taille du bouton */
+    padding: 6px 10px;
+  }
+
+  .post-card-content,
+  .post-card-heading {
+    font-size: 0.7rem; /* Ajuster la taille de la police */
+  }
+}
+
+/* style={{ 
+    marginBottom: '20px', 
+    padding: '15px', 
+    border: '1px solid #ddd', 
+    borderRadius: '8px', 
+    backgroundColor: '#f9f9f9' 
+  }} */

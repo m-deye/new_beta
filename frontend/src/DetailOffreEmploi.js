@@ -1,0 +1,264 @@
+import React, { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom";
+import Header from "./Header";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import { useTranslation } from "react-i18next";
+
+import axiosInstance from "./api/axiosInstance";
+
+const DetailOffreEmploi = () => {
+  const { offreId } = useParams(); // Récupérer l'ID de l'offre depuis l'URL
+  const [offre, setOffre] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const { i18n, t } = useTranslation();
+  const isRTL = i18n.language === "ar";
+
+  // Fonction de formatage jour mois année avec ou sans heure selon afficher_heures
+  const formatDateSimple = (isoString, afficherHeures = false) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+
+    // Choix du locale
+    const locale = i18n.language === "ar" ? "ar-EG" : "fr-FR";
+
+    // On ajoute numberingSystem:'latn' pour les chiffres occidentaux en arabe
+    const options = {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      numberingSystem: i18n.language === "ar" ? "latn" : undefined,
+    };
+
+    // Ajouter l'heure si afficher_heures est true
+    if (afficherHeures) {
+      options.hour = "2-digit";
+      options.minute = "2-digit";
+    }
+
+    return new Intl.DateTimeFormat(locale, options).format(date);
+  };
+
+  const hasViewed = useRef(false);
+  useEffect(() => {
+    const fetchOffre = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/api/offres/detail/${offreId}/?lang=${i18n.language}`
+        );
+        setOffre(response.data);
+
+        // ✅ On s'assure que l'incrémentation ne se fait qu'une fois
+        if (!hasViewed.current) {
+          await axiosInstance.post(`/api/offres/${offreId}/incremente_vue/`);
+          hasViewed.current = true;
+        }
+      } catch (error) {
+        setError(error.message || "Erreur lors de la récupération des données");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (offreId) {
+      fetchOffre();
+    }
+  }, [offreId, i18n.language]);
+
+  if (loading) return <div>Chargement en cours...</div>;
+  if (error) return <div>Erreur : {error}</div>;
+  if (!offre) return <div>Aucune offre trouvée</div>;
+
+  return (
+    <div
+      dir={isRTL ? "rtl" : "ltr"} // ← direction du flux textuel
+      className={isRTL ? "rtl" : ""} // ← pour cibler en CSS si besoin
+    >
+      <Header />
+      <Navbar />
+      <div className="container bg-white">
+        <div className="row">
+          <div className="col-md-12">
+            <div className="card p-2 mt-2 mb-2" style={{ maxWidth: "100%" }}>
+              <div className="row">
+                <div className="col-md-2">
+                  <div className="text-center">
+                    <img
+                      width="120px"
+                      src={offre.client__logo}
+                      alt="Company Logo"
+                    />
+                  </div>
+                </div>
+                <div className="col-md-10 align-self-center">
+                  <span
+                    className="font-weight-bold"
+                    style={{ fontSize: "14px" }}
+                  >
+                    {offre.client__nom}
+                  </span>
+                  <br />
+                  <span
+                    className="text-beta font-weight-bold"
+                    style={{ fontSize: "14px", color: "#0C96B1" }}
+                    dangerouslySetInnerHTML={{ __html: offre.titre }}
+                  ></span>
+                  <div className="row">
+                    <div className="col-lg-6">
+                      <b>
+                        {t("date_limite")} :{" "}
+                        <span className="text-danger">
+                          {formatDateSimple(offre.date_limite, offre.afficher_heures)}
+                        </span>
+                      </b>
+                    </div>
+                    <div className="col-lg-6 text-end">
+                      <b>
+                        {t("lieu")} :{" "}
+                        <span
+                          className="text-danger"
+                          style={{ marginRight: "15px" }}
+                        >
+                          {offre.lieu}
+                        </span>
+                      </b>
+                    </div>
+                  </div>
+                </div>
+              </div>{" "}
+              <br /> <br /> <br />
+              <div className="row" id="divText">
+                <div className="col-lg-12">
+                  {/* Afficher la description de l'offre */}
+                  <p
+                    dangerouslySetInnerHTML={{ __html: offre.description }}
+                    style={{ textDecoration: "none" }}
+                  />
+                </div>
+
+                {/* Vérifier si des documents existent */}
+                {offre.documents && offre.documents.length > 0 ? (
+                  <div className="col-lg-12">
+                    <br />
+                    <br />
+                    <span className="titreDocument">
+                      {t("plus_d_informations")} :{" "}
+                    </span>
+                    <br />
+                    <br />
+                    {offre.documents.map((document, index) => (
+                      <a
+                        key={index}
+                        className="titreDoc"
+                        href={document.piece_join} // Lien vers le document
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: "none" }}
+                      >
+                        <img
+                          width="30px"
+                          src="https://beta.mr/img/pdf.png"
+                          alt="PDF Icon"
+                        />
+                        <span>{document.titre_document}</span>{" "}
+                        {/* Afficher le titre du document */}
+                      </a>
+                    ))}
+                    <br />
+                  </div>
+                ) : // Masquer la section si aucun document n'existe
+                null}
+              </div>
+              <div className="card-footer mt-5">
+                <div className="row">
+                  <div className="col-6">
+                    <b>{t("offre_en_ligne_depuis")} : </b>{" "}
+                    <span style={{ color: "red" }}>
+                      {formatDateSimple(offre.date_mise_en_ligne)}
+                    </span>
+                  </div>
+                  <div className="col-6 text-end">
+                    <b>
+                      <i className="fa fa-share"></i> {t("partager_offre")} :{" "}
+                    </b>
+                    <a
+                      className=""
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://www.facebook.com/sharer/sharer.php?u=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145"
+                    >
+                      <i
+                        className="fab fa-facebook fa-lg"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+                    <a
+                      className="mx-2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href=""
+                    >
+                      <i
+                        className="fab fa-linkedin fa-lg"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+                    <a
+                      className=""
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href=""
+                    >
+                      <i
+                        className="fab fa-whatsapp text-success fa-lg"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div
+                  className="btn-group"
+                  role="group"
+                  aria-label="Basic example"
+                >
+                  <a
+                    className="mr-3 btn btn-sm shadow-sm mb-1" // Suppression de btn-primary car nous définissons une couleur personnalisée
+                    href="/listcompter_OffresEmplois"
+                    style={{
+                      textDecoration: "none", // Ajout de text-decoration: none
+                      backgroundColor: "#4E73DF", // Ajout de la couleur de fond
+                      width: "250px", // Réduction de la largeur (ajustez la valeur selon vos besoins)
+                    }}
+                  >
+                    {t("voir_liste_complete")}
+                  </a>
+                  <a
+                    className="btn btn-sm btn-primary shadow-sm mb-1"
+                    href={`/annonces_offreemp/${offre.client__nom}`}
+                    style={{
+                      textDecoration: "none", // Ajout de text-decoration: none
+                      backgroundColor: "#4E73DF", // Ajout de la couleur de fond
+                    }}
+                  >
+                    {t("voir_toutes_annonces")} :
+                    <span style={{ color: "black", fontWeight: "bold" }}>
+                      {" "}
+                      {offre.client__nom}
+                    </span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+export default DetailOffreEmploi;

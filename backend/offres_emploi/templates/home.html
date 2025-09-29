@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil</title>
+    <style>
+        .offres-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Deux colonnes */
+            gap: 20px; /* Espace entre les colonnes */
+            width: 100%; /* Prend toute la largeur disponible */
+        }
+
+        .client-group {
+            border: 2px solid #000;
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 150px; /* Hauteur minimale pour les groupes */
+            width: 100%; /* Prend toute la largeur disponible */
+            box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur */
+            overflow: hidden; /* Empêche le contenu de déborder */
+        }
+
+        .client-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .offre-lien {
+            display: block;
+            margin-bottom: 5px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        .offre-lien:hover {
+            text-decoration: underline;
+        }
+
+        .offre-info {
+            position: absolute;
+            bottom: 10px; /* Position en bas */
+            width: calc(100% - 20px); /* Ajuste la largeur en tenant compte du padding */
+            display: flex;
+            justify-content: space-between; /* Espace entre la date et le lieu */
+            padding: 0 10px; /* Espacement horizontal */
+            white-space: nowrap; /* Empêche le texte de passer à la ligne */
+            overflow: hidden; /* Cache le texte qui dépasse */
+            text-overflow: ellipsis; /* Ajoute des points de suspension si le texte dépasse */
+        }
+
+        .offre-date {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .offre-lieu {
+            font-size: 0.9em;
+            color: #555;
+            margin-left: 10px; /* Ajoute un espace entre la date et le lieu */
+            white-space: nowrap; /* Empêche le texte de passer à la ligne */
+            overflow: hidden; /* Cache le texte qui dépasse */
+            text-overflow: ellipsis; /* Ajoute des points de suspension si le texte dépasse */
+        }
+
+        .offre {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            position: relative; /* Pour positionner les éléments enfants */
+            min-height: 150px; /* Hauteur minimale pour les offres */
+            width: 100%; /* Prend toute la largeur disponible */
+            box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur */
+            overflow: hidden; /* Empêche le contenu de déborder */
+        }
+
+        .offre h2 {
+            margin-top: 0;
+        }
+
+        .offre a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        .offre a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Offres d'emploi</h1>
+
+    {% if user.is_authenticated and user.role == 'client' %}
+        <p>Vous voyez uniquement les offres que vous avez créées.</p>
+    {% else %}
+        <p>Vous voyez toutes les offres publiées.</p>
+    {% endif %}
+
+    <div class="offres-container">
+        <!-- Afficher les offres groupées par client -->
+        {% for client, data in offres_groupées_par_client.items %}
+            <div class="client-group">
+                <div class="client-name">{{ client.nom }}</div>
+                {% for offre in data.offres %}
+                    <a class="offre-lien" href="{% url 'detail_offre' offre.id %}">{{ offre.titre }}</a>
+                {% endfor %}
+                <div class="offre-info">
+                    <div class="offre-date">{{ data.dates_formatees }}</div>
+                    <div class="offre-lieu">Lieu : {{ data.lieux_formates }}</div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Afficher les offres non groupées individuellement -->
+        {% for offre in offres_non_groupées %}
+            <div class="offre">
+                {% comment %} <h2><a href="{% url 'detail_offres' offre.id %}">{{ offre.titre }}</a></h2> {% endcomment %}
+                <p>Statut : {{ offre.si_publier|yesno:"Publiée,Non publiée" }}</p>
+                <div class="offre-info">
+                    <div class="offre-date">Date limite : {{ offre.date_limite|date:"d/m/Y" }}</div>
+                    <div class="offre-lieu">Lieu : {{ offre.lieu }}</div>
+                </div>
+
+                {% if user.is_authenticated and user.role == 'client' and not offre.si_publier %}
+                    <p>
+                        <a href="{% url 'modifier_offre' offre.id %}">Modifier cette offre</a> |
+                        {% comment %} <a href="{% url 'supprimer_offre' offre.id %}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette offre ?');">Supprimer cette offre</a> {% endcomment %}
+                    </p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if user.is_authenticated %}
+        <p>Bienvenue, {{ user.username }} ! <a href="{% url 'deconnexion' %}">Déconnexion</a></p>
+        {% if user.role == 'client' %}
+            <p><a href="{% url 'creer_offre' %}">Créer une offre d'emploi</a></p>
+        {% endif %}
+    {% else %}
+        <p>
+            <a href="{% url 'connexion' %}">Se connecter</a> |
+            <a href="{% url 'inscription' role='client' %}">Créer un client</a> |
+            <a href="{% url 'inscription' role='candidat' %}">Créer un candidat</a>
+        </p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,14 @@
+frontend/node_modules/
+frontend/build/
+
+# Fichiers compilés Python
+*.pyc
+*.pyo
+*.pyd
+
+__pycache__/
+
+# Virtual environments
+backend/env/
+venv/
+env/

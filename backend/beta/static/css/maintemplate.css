@@ -1,0 +1,18 @@
+.titregroupemlois {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px; /* espacement horizontal et vertical constant */
+  margin-top: 4px;
+}
+
+.titre_group_emploi {
+  display: inline-block;
+  line-height: 1.2;
+  margin: 0; /* neutraliser marges */
+}
+
+.titre_group_emploi + .titre_group_emploi {
+  /* assurer un espacement constant entre éléments adjacents si gap non pris */
+  margin-left: 6px;
+}
+

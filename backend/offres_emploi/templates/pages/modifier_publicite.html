@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">MODIFIER LA PUBLICITÉ</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <!-- Libellé -->
+        <div class="form-group mb-3">
+            <label for="id_libelle" class="form-label" style="font-size: 14px; font-weight: bold;">LIBELLÉ *</label>
+            {{ form.libelle }}
+            {% if form.libelle.errors %}
+                <div class="text-danger">
+                    {% for error in form.libelle.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ID du client -->
+        <div class="form-group mb-3">
+            <label for="id_client" class="form-label" style="font-size: 14px; font-weight: bold;">ID DU CLIENT</label>
+            {{ form.client }}
+            {% if form.client.errors %}
+                <div class="text-danger">
+                    {% for error in form.client.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Type de publicité -->
+        <div class="form-group mb-3">
+            <label for="id_type_publicite" class="form-label" style="font-size: 14px; font-weight: bold;">TYPE DE PUBLICITÉ</label>
+            {{ form.type_publicite }}
+            {% if form.type_publicite.errors %}
+                <div class="text-danger">
+                    {% for error in form.type_publicite.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Type -->
+        <div class="form-group mb-3">
+            <label for="id_type_contenu" class="form-label" style="font-size: 14px; font-weight: bold;">TYPE</label>
+            {{ form.type_contenu }}
+            {% if form.type_contenu.errors %}
+                <div class="text-danger">
+                    {% for error in form.type_contenu.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_image" class="form-label" style="font-size: 14px; font-weight: bold;">IMAGE</label>
+            <div class="d-flex align-items-center gap-2">
+                <div class="file-input-wrapper flex-grow-1 me-2">
+                    <label class="file-input-label w-100" for="id_image">
+                        <span class="file-input-button">Choisir un fichier</span>
+                        <span class="file-input-text">
+                            {% if publicite.image %}
+                                {{ publicite.image.name|cut:"publicites/images/" }}
+                            {% else %}
+                                Aucun fichier choisi
+                            {% endif %}
+                        </span>
+                    </label>
+                    {{ form.image }}
+                </div>
+                {% if publicite.image %}
+                    <a href="{{ publicite.image.url }}" target="_blank" class="btn btn-info flex-shrink-0" style="width: 120px;">Voir l'image</a>
+                {% endif %}
+            </div>
+            {% if form.image.errors %}
+                <div class="text-danger">
+                    {% for error in form.image.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+<!-- Section Lien modifiée -->
+<div class="form-group mb-3" id="lien_field" style="display: none;">
+    <label for="id_lien" class="form-label" style="font-size: 14px; font-weight: bold;">LIEN</label>
+    <div class="d-flex align-items-center gap-2">
+        {{ form.lien }}
+        {% if publicite.lien %}
+            <a href="{{ publicite.lien }}" target="_blank" class="btn btn-info flex-shrink-0" style="width: 120px;">Consulter</a>
+        {% endif %}
+    </div>
+    {% if form.lien.errors %}
+        <div class="text-danger">
+            {% for error in form.lien.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Section Document modifiée -->
+<div class="form-group mb-3" id="fichier_field" style="display: none;">
+    <label for="id_fichier" class="form-label" style="font-size: 14px; font-weight: bold;">CHANGER LE FICHIER</label>
+    <div class="d-flex align-items-center gap-2">
+        <div class="file-input-wrapper flex-grow-1 me-2">
+            <label class="file-input-label w-100" for="id_fichier">
+                <span class="file-input-button">Choisir un fichier</span>
+                <span class="file-input-text">
+                    {% if publicite.fichier %}
+                        {{ publicite.fichier.name|cut:"publicites/document/" }}
+                    {% else %}
+                        Aucun fichier choisi
+                    {% endif %}
+                </span>
+            </label>
+            {{ form.fichier }}
+        </div>
+        {% if publicite.fichier %}
+            <a href="{{ publicite.fichier.url }}" target="_blank" class="btn btn-info flex-shrink-0" style="width: 120px;">Voir le document</a>
+        {% endif %}
+    </div>
+    {% if form.fichier.errors %}
+        <div class="text-danger">
+            {% for error in form.fichier.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+        <!-- Date limite -->
+        <div class="form-group mb-3">
+            <label for="id_date_limite" class="form-label" style="font-size: 14px; font-weight: bold;">DATE LIMITE *</label>
+            <div class="input-group">
+                {{ form.date_limite }}
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                </div>
+            </div>
+            {% if form.date_limite.errors %}
+                <div class="text-danger">
+                    {% for error in form.date_limite.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Bouton Enregistrer -->
+        <button type="submit" class="btn btn-success mt-3" style="background-color: #28a745; border: none; font-weight: bold;">ENREGISTRER</button>
+    </form>
+</div>
+
+<style>
+    /* Style pour tous les champs du formulaire */
+    .form-control, 
+    select, 
+    input[type="date"], 
+    input[type="text"], 
+    input[type="url"] {
+        border: 1px solid #d1d3e2; /* Bordure plus claire comme dans la capture */
+        border-radius: 3px; /* Bordures légèrement arrondies */
+        padding: 5px 8px; /* Padding réduit pour une apparence plus compacte */
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+        height: 30px; /* Hauteur ajustée pour correspondre à l'image */
+    }
+    /* Pour aligner le champ lien avec le bouton */
+#lien_field input[type="url"] {
+    flex-grow: 1;
+    height: 30px;
+    margin: 0;
+}
+    /* Style pour les select (dropdown) */
+    select.form-control {
+        appearance: menulist;
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        background-color: #fff;
+        padding-right: 20px; /* Espace pour la flèche du dropdown */
+    }
+
+    /* Style pour le champ date avec icône calendrier */
+    .input-group {
+        position: relative;
+    }
+
+    .input-group-append {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+    .file-input-wrapper {
+        flex: 1;
+        min-width: 0; /* Permet au texte de tronquer correctement */
+    }
+    
+    .file-input-label {
+        display: flex;
+        width: 100%;
+    }
+    
+    .file-input-button {
+        flex-shrink: 0;
+    }
+    
+    .btn-info {
+        width: 120px;
+        flex-shrink: 0;
+    }
+    .input-group-text {
+        background-color: #fff;
+        border: 1px solid #d1d3e2;
+        border-left: none;
+        border-radius: 0 3px 3px 0;
+        padding: 5px 8px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Ajustement de la largeur du champ date pour laisser de la place à l'icône */
+    input[type="date"] {
+        padding-right: 40px;
+        height: 30px;
+    }
+
+    /* Style pour les champs fichier (DOCUMENT et IMAGE) */
+    .file-input-wrapper {
+        position: relative;
+        width: 100%;
+        height: 30px;
+    }
+
+    .file-input-wrapper input[type="file"] {
+        opacity: 0; /* Cacher l'input par défaut */
+        position: absolute;
+        z-index: 2;
+        width: 100%;
+        height: 30px;
+        cursor: pointer;
+    }
+
+    .file-input-label {
+        display: flex;
+        align-items: center;
+        border: 1px solid #d1d3e2;
+        border-radius: 3px;
+        height: 30px;
+        width: 100%;
+        box-sizing: border-box;
+        background-color: #fff;
+        cursor: pointer;
+    }
+
+    .file-input-button {
+        background-color: #e9ecef; /* Couleur de fond du bouton */
+        border-right: 1px solid #d1d3e2;
+        padding: 5px 10px;
+        font-size: 14px;
+        color: #6c757d;
+        height: 100%;
+        line-height: 20px;
+    }
+
+    .file-input-text {
+        padding: 5px 8px;
+        font-size: 14px;
+        color: #6c757d;
+        flex-grow: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    /* Style pour les labels avec astérisque */
+    .form-label::after {
+        content: "*";
+        color: red;
+        margin-left: 3px;
+    }
+
+    /* Retirer l'astérisque pour les champs non obligatoires */
+    label[for="id_client"]::after,
+    label[for="id_lien"]::after,
+    label[for="id_fichier"]::after,
+    label[for="id_image"]::after {
+        content: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeContenu = document.getElementById('id_type_contenu');
+        const lienField = document.getElementById('lien_field');
+        const fichierField = document.getElementById('fichier_field');
+
+        function toggleFields() {
+            if (typeContenu.value === 'LIEN') {
+                lienField.style.display = 'block';
+                fichierField.style.display = 'none';
+            } else if (typeContenu.value === 'DOCUMENT') {
+                lienField.style.display = 'none';
+                fichierField.style.display = 'block';
+            }
+        }
+
+        // Vérification initiale
+        toggleFields();
+
+        // Ajouter un écouteur d'événements pour les changements
+        typeContenu.addEventListener('change', toggleFields);
+
+        // Mettre à jour le texte des champs fichier lorsqu'un fichier est sélectionné
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const fileName = this.files.length > 0 ? this.files[0].name : "Aucun fichier choisi";
+                const fileText = this.parentElement.querySelector('.file-input-text');
+                fileText.textContent = fileName;
+            });
+        });
+        
+    });
+</script>
+{% endblock %}

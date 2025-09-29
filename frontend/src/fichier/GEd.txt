@@ -1,0 +1,903 @@
+import React, { useEffect, useState } from "react";
+import './OffresEmploi.css';
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-responsive-bs5";
+import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
+import "datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { Modal, Nav, Tab, Form, Button, Row, Col } from "react-bootstrap";
+import { Editor } from '@tinymce/tinymce-react';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Axios from 'axios';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import Select from 'react-select';
+
+// Separate Modal Component
+const JobOfferModal = ({  show, handleClose, offre , clientId  }) => {
+const [documents, setDocuments] = useState([]);
+
+const [activeTab, setActiveTab] = useState("tab1"); // Par défaut, première tab active
+const [formData, setFormData] = useState({});
+
+  useEffect(() => {
+    if(offre) {
+      setFormData({
+        titre: offre.titre,
+        type_offre: offre.type_offre,
+        description: offre.description,
+        date_mise_en_ligne: offre.date_mise_en_ligne,
+        date_limite: offre.date_limite,
+        si_national: offre.si_national,
+        lieu: offre.lieu,
+        // ville: offre.lieu,
+        ville_ar: offre.ville_ar,
+        titre_document: offre.titre_document,
+        titre_entreprise: offre.titre_entreprise,
+        categorie: offre.categorie,
+        groupement_spacial: offre.groupement_spacial,
+        titre_groupement_cpacial: offre.titre_groupement_cpacial,
+        titre_groupement_special_arabe: offre.titre_groupement_special_arabe,
+        id: offre.id,
+        titre_ar: offre.titre_ar,
+        afficher_titre_entreprise_ar: offre.afficher_titre_entreprise_ar,
+        titre_documents_ar: offre.titre_documents_ar,
+        description_ar: offre.description_ar,
+        message_ar: offre.message_ar,
+      });
+    }
+  }, [offre]);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  const saveJobOffer = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+  
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/offres/${formData.id}/`, 
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      setSaveSuccess(true);
+    } catch (error) {
+      setSaveError("Erreur de sauvegarde: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleEditorChange = (content, name) => {
+    setFormData({ ...formData, [name]: content });
+  };
+
+  const handleSubmit = (e, tab) => {
+    e.preventDefault();
+    console.log(`Submitting form for ${tab}:`, formData);
+    // Add API call here to submit data
+  };
+
+const [showAddModal, setShowAddModal] = useState(false);
+const handleOpenAddModal = () => setShowAddModal(true);
+
+
+//liste document
+  useEffect(() => {
+    if (!offre) return;
+
+    // Charger les documents
+    fetch(`http://localhost:8000/api/documents/${offre.id}/`)
+      .then((response) => response.json())
+      .then((data) => {
+        setDocuments(data.documents);
+
+        // Appliquer DataTable après chargement des données
+        setTimeout(() => {
+          $("#documentsTable").DataTable();
+        }, 100);
+      })
+      .catch((error) => console.error("Erreur :", error));
+  }, [offre]);
+
+
+   // Fonction pour supprimer un document
+   const deleteDocument = (documentId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer ce document ?")) return;
+
+    fetch(`http://localhost:8000/api/documents/delete/${documentId}/`, { method: "DELETE" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+          alert("Erreur : " + data.error);
+        } else {
+          alert("Document supprimé !");
+          setDocuments(documents.filter((doc) => doc.id !== documentId)); // Mise à jour de l’état
+        }
+      })
+      .catch((error) => console.error("Erreur :", error));
+  };
+    //modal ajouter document
+    const handleShowAddModal = () => setShowAddModal(true);
+    const handleCloseAddModal = () => setShowAddModal(false);
+    const [selfile, setFile] = useState(null);
+    const [seltitre_document, setTitreDocument] = useState("");
+    const [sellangue, setLangue] = useState("");
+
+    const typeOptions = [
+        { value: "Français", label: "Français" },
+        { value: "Anglais", label: "Anglais" },
+        { value: "Arabe", label: "Arabe" },
+    ];
+
+    const handleDocumentSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!selfile || !seltitre_document || !sellangue) {
+            console.error("Tous les champs sont requis !");
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append("piece_join", selfile); // fichier
+            formData.append("titre_document", seltitre_document);
+            formData.append("langue", sellangue);
+
+            const response = await fetch(
+                `http://localhost:8000/ajouter_document_client/${offre.id}/`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        // Ne pas mettre "Content-Type": "application/json", FormData le gère automatiquement
+                    },
+                    body: formData, // Envoi des données
+                }
+            );
+
+            const data = await response.json();
+            if (response.ok) {
+                console.log("Document ajouté :", data);
+                handleCloseAddModal(); // Fermer la modal si nécessaire
+            } else {
+                console.error("Erreur :", data);
+            }
+        } catch (error) {
+            console.error("Erreur de connexion :", error);
+        }
+    };
+
+  return (
+    <Modal show={show} onHide={handleClose} size="xl">
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <b>Offre : <div dangerouslySetInnerHTML={{ __html: formData.titre }} /></b>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+          <Nav variant="tabs" className="main-tabs">
+            <Nav.Item>
+              <Nav.Link eventKey="tab1">
+                <i className="fa fa-info-circle"></i> Info
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="tab2">
+                <i className="fa fa-language"></i> Traduction en arabe
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="tab3">
+                <i className="far fa-file-pdf"></i> GED
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
+
+          <Tab.Content>
+            <Tab.Pane eventKey="tab1">
+              <Form onSubmit={(e) => handleSubmit(e, 'tab1')}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre <span className="text-danger">*</span></Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.titre}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'titre')}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Type <span className="text-danger">*</span></Form.Label>
+                  <Form.Select name="type_offre" value={formData.type_offre} onChange={handleInputChange}>
+                    <option value="1">Offres d'emploi</option>
+                    <option value="2">Consultants</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description <span className="text-danger">*</span></Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.description}
+                    init={{
+                      height: 445,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist link image',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'description')}
+                  />
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date de mise en ligne <span className="text-danger">*</span></Form.Label>
+                      <Form.Control type="date" name="date_mise_en_ligne" value={formData.date_mise_en_ligne} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date limite <span className="text-danger">*</span></Form.Label>
+                      <Form.Control type="" name="date_limite" value={formData.date_limite} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Type de l'offre</Form.Label>
+                      <Form.Select name="si_national" value={formData.si_national} onChange={handleInputChange}>
+                        <option value="1">National</option>
+                        <option value="2">International</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Lieu <span className="text-danger">*</span></Form.Label>
+                      <Form.Select name="lieu" value={formData.lieu} onChange={handleInputChange}>
+                        <option value="1">Hodh Charghi</option>
+                        <option value="2">Hodh Gharbi</option>
+                        <option value="3">Assaba</option>
+                        <option value="4">Gorgol</option>
+                        <option value="5">Brakna</option>
+                      </Form.Select>
+                      <Form.Control
+                        type="text"
+                        name="ville_ar"
+                        value={formData.ville_ar}
+                        onChange={handleInputChange}
+                        placeholder="Ville Arabe"
+                        className="mt-2"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre des documents</Form.Label>
+                      <Form.Control type="text" name="titre_document" value={formData.titre_document} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre entreprise</Form.Label>
+                      <Form.Control type="text" name="titre_entreprise" value={formData.titre_entreprise} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* New Fields */}
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Catégorie <span className="text-danger">*</span></Form.Label>
+                      <Form.Select name="categorie" value={formData.categorie} onChange={handleInputChange}>
+                        <option value="1">Standard</option>
+                        <option value="2">Dépôt</option>
+                        <option value="3">SAR</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Groupement spécial</Form.Label>
+                      <Form.Select name="groupement_spacial" value={formData.groupement_spacial} onChange={handleInputChange}>
+                        <option value="0">Non</option>
+                        <option value="1">Oui</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre groupement spécial</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="titre_groupement_cpacial"
+                    value={formData.titre_groupement_cpacial}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre groupement spécial arabe</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="titre_groupement_special_arabe"
+                    value={formData.titre_groupement_special_arabe}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                <Button 
+                  variant="success" 
+                  onClick={saveJobOffer} 
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Sauvegarde..." : "Enregistrer"}
+                </Button>
+              </div>
+              </Form>
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="tab2">
+              <Form onSubmit={(e) => handleSubmit(e, 'tab2')}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Titre en arabe</Form.Label>
+                  <Form.Control type="text" name="titre_ar" value={formData.titre_ar} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre entreprise ar</Form.Label>
+                      <Form.Control type="text" name="afficher_titre_entreprise_ar" value={formData.afficher_titre_entreprise_ar} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Titre des documents en arabe</Form.Label>
+                      <Form.Control type="text" name="titre_documents_ar" value={formData.titre_documents_ar} onChange={handleInputChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Description en arabe</Form.Label>
+                  <Editor
+                    apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                    value={formData.description_ar}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: 'powerpaste advcode table lists checklist link image',
+                      toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                    }}
+                    onEditorChange={(content) => handleEditorChange(content, 'description_ar')}
+                  />
+                </Form.Group>
+
+                <div className="text-end">
+                <Button variant="success" type="submit" disabled={isSaving}>
+                        <i className="fas fa-save"></i> {isSaving ? 'Saving...' : 'Save'}
+                    </Button>
+                </div>
+              </Form>
+            </Tab.Pane>
+            <Tab.Pane eventKey="tab3">
+            <section className="container mt-4">      
+      <div>
+        <Button className="btn" style={{ width: '200px' }}
+          variant="primary" 
+          onClick={() => setShowAddModal(true)} 
+        >
+          Nouveau document
+        </Button>
+      </div>
+      <br /><br />
+      <div className="text-center card shadow-sm" style={{ maxWidth: "100%" }}>
+      <div className="card-bod">
+        <table id="documentsTable" className="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th>Libellé</th>
+              <th>langue</th>
+              <th>Extension</th>
+              <th>Taille (Octets)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((doc) => (
+              <tr key={doc.id}>
+                <td>{doc.titre_document}</td>
+                <td>{doc.langue}</td>
+                <td>{doc.extension}</td>
+                <td>{doc.taille}</td>
+                <td>
+                  <div className="btn-group">
+                    {/* Bouton Voir */}
+                    <a
+                      href={doc.piece_join_url}
+                      className="btn btn-sm "  style={{  
+                       
+                        backgroundColor: "#5A5C69",
+                        
+                      }} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Voir fichier"
+                    >
+                      <i className="fa fa-fw fa-eye"></i>
+                    </a>
+
+                    {/* Bouton Supprimer */}
+                    <button
+                      className="btn btn-sm " style={{  
+                       
+                        backgroundColor: "#858796",
+                        
+                      }} 
+                      onClick={() => deleteDocument(doc.id)}
+                      title="Supprimer"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </section>
+             
+      {/* Modal d'ajout */}
+      <Modal show={showAddModal} onHide={handleCloseAddModal} size="lg">
+            <Modal.Header closeButton>
+                <Modal.Title>Nouveau document</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form onSubmit={handleDocumentSubmit}>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Fichier <span className="text-danger">*</span></Form.Label>
+                        <Form.Control
+                            type="file"
+                            onChange={(e) => setFile(e.target.files[0])} // Gérer fichier correctement
+                            accept=".pdf,.doc,.docx,.xls,.xlsx"
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Libellé <span className="text-danger">*</span></Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={seltitre_document}
+                            onChange={(e) => setTitreDocument(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Langue <span className="text-danger">*</span></Form.Label>
+                        <Form.Select
+                            value={sellangue}
+                            onChange={(e) => setLangue(e.target.value)}
+                        >
+                            <option value="">Sélectionner une langue</option>
+                            {typeOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
+
+                    <div className="text-end">
+                        <Button variant="success" type="submit">
+                            Enregistrer
+                        </Button>
+                    </div>
+                </Form>
+            </Modal.Body>
+        </Modal>
+    </Tab.Pane>
+
+
+          </Tab.Content>
+        </Tab.Container>
+      </Modal.Body>
+    </Modal>
+  );
+};
+
+
+const AnnouncementTypeChanger = ({ showModal, handleClose, offreId }) => {
+  const [selectedType, setSelectedType] = useState(null);
+  
+  const typeOptions = [
+    { value: "OFFRE_EMPLOI", label: "OFFRE_EMPLOI" },
+  { value: "Consultants", label: "Consultants" },
+  { value: "Internationaux", label: "Appels d'offres internationaux" },
+  { value: "Locaux", label: "Appels d'offres locaux" },
+  { value: "Consultations", label: "Consultations" },
+  { value: "Manifestations", label: "Manifestations d’Intérêts" },
+  { value: "Avisinfos", label: "Avis & infos" },
+  ];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedType) {
+        alert("Veuillez sélectionner un type d'offre.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `http://127.0.0.1:8000/offres/modifier_type/${offreId}/`,  // URL correcte
+            {
+                method: "PUT",  // Changer la méthode si PATCH n'est pas souhaité
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ type_offre: selectedType.value }), // Convertir en JSON
+            }
+        );
+
+        const data = await response.json(); // Convertir la réponse en JSON
+
+        if (response.ok) {
+            console.log("Type d'offre modifié :", data);
+            handleClose(); // Fermer la modal si nécessaire
+        } else {
+            console.error("Erreur :", data);
+        }
+
+    } catch (error) {
+        console.error("Erreur de connexion :", error);
+    }
+};
+
+
+  return (
+    <Modal show={showModal} onHide={handleClose} backdrop={false}>
+      <Modal.Header closeButton>
+        <Modal.Title>Modifier le type d'annonce</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-4">
+            <Form.Label>Nouveau type :</Form.Label>
+            <Select
+              options={typeOptions}
+              value={selectedType}
+              onChange={setSelectedType}
+              placeholder="Sélectionnez un type"
+              isSearchable
+            />
+          </Form.Group>
+          <div className="d-flex justify-content-end gap-2">
+            <Button variant="secondary" onClick={handleClose}>
+              Annuler
+            </Button>
+            <Button variant="primary" type="submit">
+              Confirmer
+            </Button>
+          </div>
+        </Form>
+      </Modal.Body>
+    </Modal>
+  );
+};
+ 
+
+
+
+// Main Component
+const OffresEmploi = ({ offresEmploi = [], clientId }) => {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedOffre, setSelectedOffre] = useState(null);
+
+  const [titreContent, setTitreContent] = useState('');
+  const [descriptionContent, setDescriptionContent] = useState('');
+  const [typeAnnonce, setTypeAnnonce] = useState('1');
+  const [lieu, setLieu] = useState('');
+  const [showLieuInput, setShowLieuInput] = useState(false);
+  const [selectedType, setSelectedType] = useState('1');
+
+
+const [showModal, setShowModal] = useState(false);
+
+// const handleShow = () => setShowModal(true);
+const handleClose = () => {
+  setShowModal(false);
+  setSelectedOffre(null);
+};
+  const locationOptions = [
+    { value: 'Hodh Charghi', label: 'Hodh Charghi' },
+    { value: 'Hodh Gharbi', label: 'Hodh Gharbi' },
+    { value: 'Assaba', label: 'Assaba' },
+    { value: 'Gorgol', label: 'Gorgol' },
+    { value: 'Brakna', label: 'Brakna' },
+    // Add other options as needed
+  ];
+
+  useEffect(() => {
+    if (offresEmploi.length > 0) {
+      const table = $("#offresEmploiTable").DataTable({
+        responsive: true,
+        destroy: true,
+      });
+      return () => table.destroy();
+    }
+  }, [offresEmploi]);
+
+  const handleOpenAddModal = () => setShowAddModal(true);
+  const handleCloseAddModal = () => setShowAddModal(false);
+
+  const handleOpenDetailModal = (offre) => {
+    setSelectedOffre(offre);
+    setShowDetailModal(true);
+  };
+  const handleCloseDetailModal = () => setShowDetailModal(false);
+
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = {
+      titre: titreContent,
+      description: descriptionContent,
+      type_offre: typeAnnonce,
+      date_limite: new Date(document.getElementById("date_limite").value).toISOString(),
+      lieu: lieu,
+      national: selectedType,
+    };
+
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/offres/ajouter/${clientId}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Offre ajoutée :", response.data);
+      handleCloseAddModal();
+      setShowDetailModal(true); // Ouvre la nouvelle modal
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  };
+
+  const handleShow = (offre) => {
+    setSelectedOffre(offre);
+    setShowModal(true);
+};
+
+
+
+
+ 
+
+  return (
+    <section className="container mt-4">
+       <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="m-0">Offres d'emploi</h2>
+        <Button
+          variant="primary"
+          className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" style={{ width:'170px' ,textDecoration:'none'}}
+          onClick={handleOpenAddModal}
+        >
+          <FontAwesomeIcon icon={faPlus} className="fas fa-sm text-white-50" />
+          Ajouter une offre
+        </Button>
+      </div>
+
+      <div className="text-center card shadow-sm" style={{ maxWidth: "100%" }}>
+        <div className="card-bod">
+          <table id="offresEmploiTable" className="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Date limite</th>
+                <th>Nom du client</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offresEmploi.map((offre) => (
+                <tr key={offre.id}>
+                  <td dangerouslySetInnerHTML={{ __html: offre.titre }} ></td>
+                  <td>{offre.date_limite}</td>
+                  <td>{offre.client__nom}</td>
+                  <td>
+
+                  <OverlayTrigger placement="top" overlay={<Tooltip>Changer le type d'annonce</Tooltip>}>
+                <Button 
+                  variant="danger" 
+                  className="btn-sm" 
+                  style={{  
+                    padding: "5px 2px 2px 2px", 
+                    fontSize: "10px", 
+                    width: "23px", 
+                    borderRadius: "4px 0 0 4px", 
+                    border: "none",        // Supprime la bordure
+                    boxShadow: "none",     // Supprime l'ombre au clic
+                    outline: "none",       // Supprime le focus
+                    
+                  }} 
+                  onClick={() => handleShow(offre)}
+                >
+                  <i className="fa fa-info-circle"></i>
+                </Button>
+              </OverlayTrigger>
+
+              <AnnouncementTypeChanger showModal={showModal} handleClose={handleClose} />
+
+              <OverlayTrigger placement="top" overlay={<Tooltip>Visualiser</Tooltip>}>
+                <Button 
+                  className="btn-sm" 
+                  style={{  
+                    padding: "5px 2px 2px 2px", 
+                    fontSize: "10px", 
+                    width: "23px", 
+                    backgroundColor: "#5A5C69", 
+                    borderRadius: "0 4px 4px 0", 
+                    border: "none",      
+                    boxShadow: "none",   
+                    outline: "none"      
+                  }} 
+                  onClick={() => handleOpenDetailModal(offre)}
+                >
+                  <i className="fa fa-fw fa-eye"></i> 
+                </Button>
+              </OverlayTrigger>                   
+                  </td>         
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <AnnouncementTypeChanger 
+    showModal={showModal} 
+    handleClose={handleClose} 
+    offreId={selectedOffre?.id} 
+/>
+        </div>
+      </div>
+
+
+
+
+      {/* Add Modal */}
+      <Modal show={showAddModal} onHide={handleCloseAddModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Nouvelle Offre</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Titre <span className="text-danger">*</span></Form.Label>
+              <Editor
+                apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                value={titreContent}
+                init={{
+                  height: 400,
+                  plugins: 'powerpaste advcode table lists checklist',
+                  toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                }}
+                onEditorChange={(content) => setTitreContent(content)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Type <span className="text-danger">*</span></Form.Label>
+              <Form.Select value={typeAnnonce} onChange={(e) => setTypeAnnonce(e.target.value)}>
+                <option value="1">Offres d'emploi</option>
+                <option value="2">Consultants</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description <span className="text-danger">*</span></Form.Label>
+              <Editor
+                apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+                value={descriptionContent}
+                init={{
+                  height: 400,
+                  plugins: 'powerpaste advcode table lists checklist',
+                  toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+                }}
+                onEditorChange={(content) => setDescriptionContent(content)}
+              />
+            </Form.Group>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Date limite <span className="text-danger">*</span></Form.Label>
+                  <Form.Control type="datetime-local" id="date_limite" defaultValue="2025-02-28" />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Type de l'offre</Form.Label>
+                  <Form.Select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+                    <option value="1">National</option>
+                    <option value="2">International</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Lieu <span className="text-danger">*</span></Form.Label>
+              <Form.Select
+                value={lieu}
+                onChange={(e) => {
+                  setLieu(e.target.value);
+                  setShowLieuInput(e.target.value === 'Autre');
+                }}
+              >
+                <option value="">Sélectionner...</option>
+                {locationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Form.Select>
+              {showLieuInput && (
+                <div className="mt-3">
+                  <Form.Control placeholder="Ex: Paris, Bamako, Tunis" className="mb-2" />
+                  <Form.Control placeholder="Ex: باريس, باماكو, تونس" dir="rtl" />
+                </div>
+              )}
+            </Form.Group>
+
+            <div className="text-end">
+              <Button variant="success" type="submit">
+                Ajouter
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Detail/Edit Modal */}
+      <JobOfferModal show={showDetailModal} handleClose={handleCloseDetailModal} offre={selectedOffre} />
+    </section>
+  );
+};
+
+export default OffresEmploi;

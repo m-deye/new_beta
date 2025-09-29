@@ -1,0 +1,224 @@
+<!-- templates/modifier_permissions.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Modifier les permissions de {{ utilisateur.username }}</h1>
+    </div>
+
+        <div class="row">
+            <!-- Colonne de gauche : Permissions disponibles -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Permissions disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group" id="permissions-disponibles">
+                            {% if all_permissions %}
+                                {% for perm in all_permissions %}
+                                    {% if perm.id not in user_permission_ids %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center" data-perm-id="{{ perm.id }}">
+                                            {{ perm.name }} ({{ perm.codename }})
+                                            <button type="button" class="btn btn-sm btn-primary move-to-current" data-perm-id="{{ perm.id }}">
+                                                <i class="fas fa-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p>Aucune permission disponible.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne de droite : Permissions actuelles -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Permissions actuelles</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group" id="permissions-actuelles">
+                            {% if current_permissions %}
+                                {% for perm in current_permissions %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center" data-perm-id="{{ perm.id }}">
+                                        {{ perm.name }} ({{ perm.codename }})
+                                        <button type="button" class="btn btn-sm btn-danger move-to-available" data-perm-id="{{ perm.id }}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>Aucune permission actuelle.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'liste_utilisateurs' %}" class="btn btn-secondary">Annuler</a>
+            <button type="button" class="btn btn-primary" id="save-permissions">Sauvegarder</button>
+        </div>
+    
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fonction pour déplacer une permission vers les permissions actuelles
+        document.querySelectorAll('.move-to-current').forEach(button => {
+            button.addEventListener('click', function() {
+                const permItem = this.parentElement;
+                const permId = this.getAttribute('data-perm-id');
+                const permName = permItem.textContent.trim();
+
+                // Déplacer la permission vers les permissions actuelles
+                document.getElementById('permissions-actuelles').appendChild(permItem);
+
+                // Changer le bouton pour permettre de retirer la permission
+                this.innerHTML = '<i class="fas fa-times"></i>';
+                this.classList.remove('btn-primary', 'move-to-current');
+                this.classList.add('btn-danger', 'move-to-available');
+
+                // Mettre à jour l'événement du bouton
+                this.removeEventListener('click', arguments.callee);
+                this.addEventListener('click', moveToAvailableHandler);
+
+                // Optionnel : Envoyer une requête AJAX pour ajouter la permission côté serveur
+                ajouterPermission(permId);
+            });
+        });
+
+        // Fonction pour déplacer une permission vers les permissions disponibles
+        function moveToAvailableHandler() {
+            const permItem = this.parentElement;
+            const permId = this.getAttribute('data-perm-id');
+            const permName = permItem.textContent.trim();
+
+            // Déplacer la permission vers les permissions disponibles
+            document.getElementById('permissions-disponibles').appendChild(permItem);
+
+            // Changer le bouton pour permettre d'ajouter la permission
+            this.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            this.classList.remove('btn-danger', 'move-to-available');
+            this.classList.add('btn-primary', 'move-to-current');
+
+            // Mettre à jour l'événement du bouton
+            this.removeEventListener('click', moveToAvailableHandler);
+            this.addEventListener('click', moveToCurrentHandler);
+
+            // Optionnel : Envoyer une requête AJAX pour retirer la permission côté serveur
+            retirerPermission(permId);
+        }
+
+        // Fonction pour déplacer une permission vers les permissions actuelles (redéfinition)
+        function moveToCurrentHandler() {
+            const permItem = this.parentElement;
+            const permId = this.getAttribute('data-perm-id');
+            const permName = permItem.textContent.trim();
+
+            // Déplacer la permission vers les permissions actuelles
+            document.getElementById('permissions-actuelles').appendChild(permItem);
+
+            // Changer le bouton pour permettre de retirer la permission
+            this.innerHTML = '<i class="fas fa-times"></i>';
+            this.classList.remove('btn-primary', 'move-to-current');
+            this.classList.add('btn-danger', 'move-to-available');
+
+            // Mettre à jour l'événement du bouton
+            this.removeEventListener('click', moveToCurrentHandler);
+            this.addEventListener('click', moveToAvailableHandler);
+
+            // Optionnel : Envoyer une requête AJAX pour ajouter la permission côté serveur
+            ajouterPermission(permId);
+        }
+
+        // Ajouter les écouteurs d'événements aux boutons existants pour retirer
+        document.querySelectorAll('.move-to-available').forEach(button => {
+            button.addEventListener('click', moveToAvailableHandler);
+        });
+
+        // Fonctions AJAX pour gérer les permissions côté serveur
+        function ajouterPermission(permId) {
+            const userId = '{{ utilisateur.id }}';
+            $.ajax({
+                url: `/modifier_permissions/${userId}/ajouter/`,
+                method: 'POST',
+                data: {
+                    permission_id: permId,
+                    csrfmiddlewaretoken: document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                },
+                success: function(data) {
+                    if (data.success) {
+                        console.log(`Permission ${permId} ajoutée avec succès.`);
+                    } else {
+                        console.error(`Erreur lors de l'ajout de la permission ${permId}.`);
+                    }
+                },
+                error: function(error) {
+                    console.error('Erreur réseau :', error);
+                }
+            });
+        }
+
+        function retirerPermission(permId) {
+            const userId = '{{ utilisateur.id }}';
+            $.ajax({
+                url: `/modifier_permissions/${userId}/retirer/`,
+                method: 'POST',
+                data: {
+                    permission_id: permId,
+                    csrfmiddlewaretoken: document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                },
+                success: function(data) {
+                    if (data.success) {
+                        console.log(`Permission ${permId} retirée avec succès.`);
+                    } else {
+                        console.error(`Erreur lors du retrait de la permission ${permId}.`);
+                    }
+                },
+                error: function(error) {
+                    console.error('Erreur réseau :', error);
+                }
+            });
+        }
+
+        // Bouton Sauvegarder
+        document.getElementById('save-permissions')?.addEventListener('click', function() {
+            const selectedPermIds = Array.from(document.querySelectorAll('#permissions-actuelles .list-group-item'))
+                .map(item => item.getAttribute('data-perm-id'));
+
+            $.ajax({
+                url: `/modifier_permissions/{{ utilisateur.id }}/`,
+                method: 'POST',
+                data: {
+                    permissions: selectedPermIds,
+                    csrfmiddlewaretoken: document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Succès',
+                            text: response.message,
+                            toast: true,
+                            position: 'top',
+                            timer: 5000
+                        });
+                        setTimeout(function() {
+                            window.location.href = "{% url 'liste_utilisateurs' %}";
+                        }, 2000);
+                    }
+                },
+                error: function() {
+                    alert('Erreur lors de la mise à jour des permissions.');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

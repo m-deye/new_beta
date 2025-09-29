@@ -1,0 +1,200 @@
+.readonly-field {
+    background-color: #f8f9fa !important; /* Gris clair */
+    color: #495057 !important; /* Texte plus foncé */
+    border: 1px solid #ced4da !important; /* Bordure */
+  }
+
+  /* Personnalisation des sélecteurs */
+.custom-select-wrapper {
+  position: relative;
+}
+
+.custom-select-wrapper::after {
+  content: "\f078";
+  font-family: "Font Awesome 5 Free";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6c757d;
+  font-weight: 900;
+}
+
+.form-control-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 35px;
+}
+
+
+
+
+
+.message {
+  background-color: #5ebb61;
+  color: white;
+  padding: 15px 20px;
+  margin: 10px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 250px;
+  max-width: 350px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeInOut 30s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+ 
+
+
+  /* cv */
+
+  .file-preview-frame {
+    border: 1px solid #ddd;
+    margin: 10px 0;
+    border-radius: 4px;
+  }
+  
+  .kv-file-content {
+    text-align: center;
+  }
+  
+  .file-thumbnail-footer {
+    padding: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .file-caption-info {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .file-size-info {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .kv-fileinput-error {
+    margin-top: 5px;
+    font-size: 14px;
+  }
+  
+  .file-preview-status {
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  
+  .btn-kv {
+    margin: 0 2px;
+    padding: 2px 8px;
+  }
+  
+  .file-drop-zone {
+    min-height: 200px;
+    padding: 10px;
+  }
+  
+  .file-drop-zone-title {
+    font-size: 16px;
+    color: #999;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid #e5e5e5;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .float-right {
+    float: right;
+  }
+  
+  .kv-hidden {
+    display: none;
+  }
+  
+  .input-group-btn {
+    display: flex;
+    align-items: center;
+  }
+  
+  .btn-file {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-file input[type="file"] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+  }
+  
+  /* Couleur rouge fixe pour le bouton Retirer */
+  .btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+  }
+  
+  .btn-danger:hover,
+  .btn-danger:focus,
+  .btn-danger:active,
+  .btn-danger.active,
+  .btn-danger:visited {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+  }
+
+  /* .btn-primary{
+    background-color: #1041f4 !important;
+    border-color: #1041f4 !important;
+    color: white !important;
+  } */

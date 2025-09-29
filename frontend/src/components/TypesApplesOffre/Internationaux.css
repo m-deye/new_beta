@@ -1,0 +1,48 @@
+.card-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #fff;
+  overflow: hidden;
+  padding: 0 5px;
+  border: 1px solid #4cb6ea;
+  /* border-top: 0; */
+  /* border-right: 0; */
+  border-top-left-radius: 10px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.imgliste {
+  max-width: 60px;
+  max-height: 46px;
+  /* object-fit: contain; */
+}
+
+.titre1 {
+  text-decoration: none !important;
+  color: #0c96b1;
+}
+
+.entreprise {
+  font-size: 11px;
+  color: #0c74cc;
+  /* margin-top: 10px; */
+}
+
+@media (max-width: 768px) {
+  .container1 {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+
+  .col-sm-1 {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .card-bod1 {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}

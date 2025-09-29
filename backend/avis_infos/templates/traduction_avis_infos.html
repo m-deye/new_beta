@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Traduction de l'appels d'offre</h2>
+
+    {# Injecte les CSS/JS CKEditor configurés dans votre OffreEmploiForm #}
+    {{ form.media }}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Titre original (non modifiable) -->
+        <div class="form-group mb-4">
+            <label for="titre_original">Titre original</label>
+            <input type="text"
+                   class="form-control"
+                   id="titre_original"
+                   value="{{ offre.titre|striptags }}"
+                   disabled>
+        </div>
+        
+        <!-- Titre traduit -->
+        <div class="form-group mb-4">
+            {{ form.titre_ar|add_class:"form-control" }}
+        </div>
+
+        <!-- Description originale (affichage HTML, non modifiable) -->
+        <div class="form-group mb-4">
+            <label>Description originale</label>
+            <div class="border rounded p-3"
+                 style="max-height:300px; overflow:auto;">
+                {{ offre.description|safe }}
+            </div>
+        </div>
+
+
+        <!-- Description traduite -->
+        <div class="form-group mb-4">
+            {{ form.description_ar|add_class:"form-control" }}
+        </div>
+
+        <!-- Lieu original -->
+        <div class="form-group mb-4">
+            <label>Lieu original</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ offre.lieu }}"
+                   disabled>
+        </div>
+
+        <!-- Lieu traduit -->
+        <div class="form-group mb-4">
+            {{ form.lieu_ar|add_class:"form-control" }}
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Enregistrer la traduction</button>
+        <a href="{% url 'appels_offres' %}" class="btn btn-secondary ms-2">Retour</a>
+    </form>
+</div>
+{% endblock %}

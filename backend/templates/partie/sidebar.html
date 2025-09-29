@@ -1,0 +1,261 @@
+{% load static %}
+{% load perm_tags %}
+<!-- Sidebar -->
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
+    id="accordionSidebar">
+  <!-- Sidebar - Brand -->
+   {% if request.user|has_permission:'gestion_utilisateur.consulter_dashboard' %}
+  <a class="sidebar-brand d-flex align-items-center justify-content-center"
+     href="{% url 'index' %}">
+    <div class="sidebar-brand-icon">
+      <img class="img_logo small-logo"
+           style="width: 60px;
+                  height: auto"
+           src="{% static 'logos/beta.png' %}"
+           alt="Logo" />
+    </div>
+    <div class="sidebar-brand-text mx-3">
+      BETA<sup></sup>
+    </div>
+  </a>
+ 
+  <!-- Divider -->
+  <hr class="sidebar-divider my-0" />
+  <!-- Nav Item - Dashboard -->
+
+    <li class="nav-item active">
+      <a class="nav-link" href="{% url 'index' %}">
+        <i class="fa-solid fa-house"></i>
+        <span>Accueil</span></a>
+    </li>
+  {% endif %}
+
+
+  <!-- Nav Item - Charts -->
+  {% if request.user|has_any_permission_offres_emploi:'OffreEmploi' %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'admin_offres' %}">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Offes d'emploi</span></a>
+    </li>
+  {% endif %}
+  {% if request.user|has_any_permission_appels_offres:'appeloffre' %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'appels_offres' %}">
+        <i class="fa-duotone fa-solid fa-briefcase-blank"></i>
+        <span>Appels d'offres</span></a>
+    </li>
+  {% endif %}
+  {% if request.user|has_any_permission_avis_infos:'avisinfos' %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'avis_infos' %}">
+        <i class="fa-solid fa-file-contract"></i>
+        <span>Avis et info</span></a>
+    </li>
+    {% comment %} {% endif %} {% if
+    request.user|has_any_permission_avis_infos:'avisinfos' %} {% endcomment %}
+    
+  {% endif %}
+
+
+   {% if request.user|has_permission:'offres_emploi.porte_feuille' %}
+      <li class="nav-item">
+          <a class="nav-link" href="{% url 'porte_feuille' %}">
+            <i class="fa-solid fa-file-contract"></i>
+            <span>porte feuille</span></a>
+      </li>
+   {% endif %}
+
+  {% if request.user|has_any_permission_offres_emploi:'Publicite' %}
+    <li class="nav-item">
+      <a class="nav-link collapsed"
+         href="{% url 'get_publicite' %}"
+         aria-expanded="true"
+         aria-controls="collapseUtilities">
+        <i class="fas fa-fw fa-wrench"></i>
+        <span>Publicite</span>
+      </a>
+    </li>
+  {% endif %}
+
+
+
+  {% comment %}
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="{% url 'liste_utilisateurs' %}" aria-expanded="true" aria-controls="collapseUtilities">
+      <i class="fas fa-fw fa-wrench"></i>
+      <span>Utilisateur</span>
+    </a>
+  </li>
+  {% endcomment %}
+  <!-- Dans votre sidebar -->
+  {% comment %} {% if user.is_authenticated and user.role == 'admin' %}
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'gestion_utilisateurs' %}">
+      <i class="fas fa-users"></i> Gestion des utilisateurs
+    </a>
+  </li>
+  {% endif %} {% if user.is_authenticated and user.role == 'admin' %}
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'gestion_permissions_groupes' %}">
+      <i class="fas fa-users"></i> gestion groupes
+    </a>
+  </li>
+  {% endif %} {% endcomment %}
+  <!-- Nav Item - Pages Collapse Menu -->
+
+
+
+  {% if user|has_role:'admin' %}
+    <li class="nav-item">
+      <a class="nav-link collapsed"
+         href="#"
+         data-toggle="collapse"
+         data-target="#collapseTwo"
+         aria-expanded="false"
+         aria-controls="collapseTwo"
+         id="utilisateursLink">
+        <i class="fas fa-fw fa-cog"></i>
+        <span>Gestion utilisateurs</span>
+      </a>
+      <div id="collapseTwo"
+           class="collapse"
+           aria-labelledby="headingTwo"
+           data-parent="#accordionSidebar">
+        <div class="py-2 collapse-inner rounded">
+          <a class="nav-link" href="{% url 'liste_utilisateurs' %}">Liste utilisateurs</a>
+          {% comment %}
+        <a class="nav-link" href="{% url 'gestion_utilisateurs' %}">
+          utilisateurs / groupe
+        </a>
+          {% endcomment %}
+          <a class="nav-link" href="{% url 'gestion_permissions_groupes' %}">Permissions / utilisateurs</a>
+        </div>
+      </div>
+    </li>
+  {% endif %}
+
+
+
+
+  <!-- {% if request.user|has_any_permission_avis_infos:'avisinfos' %} -->
+  {% comment %} <li class="nav-item">
+    <a class="nav-link" href="{% url 'parametre' %}">
+      <i class="fa-solid fa-file-contract"></i>
+      <span>Paramètres</span></a>
+  </li> {% endcomment %}
+  <!-- {% endif %}
+    {% if request.user|has_any_permission_avis_infos:'avisinfos' %} -->
+  {% comment %} <li class="nav-item">
+    <a class="nav-link" href="#">
+      <i class="fa-solid fa-file-contract"></i>
+      <span>base CV</span></a>
+  </li> {% endcomment %}
+  <!-- {% endif %} -->
+
+
+
+  {% comment %} {% if user|has_role:'traducteur' %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'traduction_offre' %}">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Offes d'emploi</span></a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'traduction_appel_offre' %}">
+        <i class="fa-duotone fa-solid fa-briefcase-blank"></i>
+        <span>Appels d'offres</span></a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'traduction_avis_infos' %}">
+        <i class="fa-solid fa-file-contract"></i>
+        <span>Avis et info</span></a>
+    </li>
+  {% endif %} {% endcomment %}
+
+
+
+
+  {% if user|has_role:'admin' %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'liste_parametres' %}">
+        <i class="fa-solid fa-file-contract"></i>
+        <span>Parametres</span></a>
+    </li>
+  {% endif %}
+
+
+
+
+
+  <div class="text-center d-none d-md-inline">
+    <button class="rounded-circle border-0" id="sidebarToggle"></button>
+  </div>
+  {% comment %}
+  <!-- Nav Item - Utilities Collapse Menu -->
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities" aria-expanded="true" aria-controls="collapseUtilities">
+      <i class="fas fa-fw fa-wrench"></i>
+      <span>Utilities</span>
+    </a>
+    <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <h6 class="collapse-header">Custom Utilities:</h6>
+        <a class="collapse-item" href="utilities-color.html">Colors</a>
+        <a class="collapse-item" href="utilities-border.html">Borders</a>
+        <a class="collapse-item" href="utilities-animation.html">Animations</a>
+        <a class="collapse-item" href="utilities-other.html">Other</a>
+      </div>
+    </div>
+  </li>
+
+  <!-- Divider -->
+  <hr class="sidebar-divider" />
+
+  <!-- Heading -->
+  <div class="sidebar-heading">Addons</div>
+
+  <!-- Nav Item - Pages Collapse Menu -->
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages" aria-expanded="true" aria-controls="collapsePages">
+      <i class="fas fa-fw fa-folder"></i>
+      <span>Pages</span>
+    </a>
+    <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <h6 class="collapse-header">Login Screens:</h6>
+        <a class="collapse-item" href="login.html">Login</a>
+        <a class="collapse-item" href="register.html">Register</a>
+        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
+        <div class="collapse-divider"></div>
+        <h6 class="collapse-header">Other Pages:</h6>
+        <a class="collapse-item" href="404.html">404 Page</a>
+        <a class="collapse-item" href="blank.html">Blank Page</a>
+      </div>
+    </div>
+  </li>
+
+  <!-- Nav Item - Charts -->
+  <li class="nav-item">
+    <a class="nav-link" href="charts.html">
+      <i class="fas fa-fw fa-chart-area"></i>
+      <span>Charts</span></a>
+  </li>
+
+  <!-- Nav Item - Tables -->
+  <li class="nav-item">
+    <a class="nav-link" href="tables.html">
+      <i class="fas fa-fw fa-table"></i>
+      <span>Tables</span></a>
+  </li>
+
+  <!-- Divider -->
+  <hr class="sidebar-divider d-none d-md-block" />
+
+  <!-- Sidebar Toggler (Sidebar) -->
+  <div class="text-center d-none d-md-inline">
+    <button class="rounded-circle border-0" id="sidebarToggle"></button>
+  </div>
+  {% endcomment %}
+</ul>
+<!-- End of Sidebar -->

@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">{{ offre.titre|striptags }}</h1>
+        {{ offre_form.media }}
+        
+        <!-- Modern Toggle Switch Styles -->
+        <style>
+            .toggle-switch-container {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+            
+            .toggle-switch-label {
+                font-weight: 600;
+                color: #374151;
+                font-size: 14px;
+            }
+            
+            .toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 56px;
+                height: 28px;
+            }
+            
+            .toggle-switch-input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            
+            .toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-radius: 28px;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 22px;
+                width: 22px;
+                left: 3px;
+                bottom: 3px;
+                background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-radius: 50%;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            
+            .toggle-switch-input:checked + .toggle-slider {
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                box-shadow: inset 0 2px 4px rgba(59, 130, 246, 0.3), 0 0 0 2px rgba(59, 130, 246, 0.1);
+            }
+            
+            .toggle-switch-input:checked + .toggle-slider:before {
+                transform: translateX(28px);
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .toggle-switch:hover .toggle-slider {
+                transform: scale(1.02);
+            }
+            
+            .toggle-switch:active .toggle-slider {
+                transform: scale(0.98);
+            }
+            
+            .toggle-status-text {
+                font-size: 12px;
+                color: #6b7280;
+                font-weight: 500;
+                margin-top: 4px;
+            }
+            
+            .toggle-enabled {
+                color: #059669 !important;
+            }
+            
+            .toggle-disabled {
+                color: #dc2626 !important;
+            }
+        </style>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Tabs navigation -->
+            <ul class="nav nav-tabs" id="offreTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="offre-tab" data-bs-toggle="tab" data-bs-target="#offre" type="button" role="tab" aria-controls="offre" aria-selected="true">
+                        Détails de l'offre
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-controls="documents" aria-selected="false">
+                        Documents
+                    </button>
+                </li>
+                {% if perms.appels_offres.grouper_appeloffre %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="groupement-tab" data-bs-toggle="tab" data-bs-target="#groupement" type="button" role="tab" aria-controls="groupement" aria-selected="false">
+                            Groupement
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+
+            <!-- Tabs content -->
+            <div class="tab-content" id="offreTabsContent">
+                <!-- Offre tab -->
+                <div class="tab-pane fade show active p-4" id="offre" role="tabpanel" aria-labelledby="offre-tab">
+                    {% for field in offre_form %}
+                        {% if field.name == 'description' %}
+                        <div class="mb-3">
+                            <label for="{{ offre_form.description.id_for_label }}">{{ offre_form.description.label }}</label>
+                            {{ offre_form.description }} 
+                        </div>
+                        {% elif field.name == 'afficher_heures' %}
+                        <!-- Modern Toggle Switch for Afficher Heures -->
+                        <div class="toggle-switch-container">
+                            <label class="toggle-switch-label">{{ field.label }}</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" class="toggle-switch-input" {% if field.value %}checked{% endif %}>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-status-text" id="toggle-status">
+                                    {% if field.value %}
+                                        <span class="toggle-enabled">✓ Afficher l'heure avec la date</span>
+                                    {% else %}
+                                        <span class="toggle-disabled">○ Afficher seulement la date</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% else %}
+                            <div class="form-group">
+                                {{ field.label_tag }}
+                                {{ field }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <!-- Onglet Documents -->
+                <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+                    <h2 class="mt-3">Documents</h2>
+                
+                    {{ document_formset.management_form }}
+                
+                    <div id="document-forms">
+                        {% for form in document_formset %}
+                            <div class="document-form mb-3 border p-3">
+                                <!-- Champs cachés essentiels pour la modification des documents -->
+                                {% for field in form.hidden_fields %}
+                                    {{ field }}
+                                {% endfor %}
+                
+                                {% for field in form.visible_fields %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                        {{ field|add_class:"form-control" }}
+                                    </div>
+                                {% endfor %}
+                
+                                <!-- Bouton de suppression pour les documents existants -->
+                                {% if form.instance.pk %}
+                                    <p><a href="{% url 'supprimer_document_appels_offre' form.instance.pk %}" class="btn btn-danger">Supprimer</a></p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                
+                    <button type="button" id="add-document" class="btn btn-secondary">Ajouter un document</button>
+                </div>
+                
+
+
+
+                <!-- Groupement tab -->
+                {% if perms.appels_offres.grouper_appeloffre %}
+                <div class="tab-pane fade p-4" id="groupement" role="tabpanel" aria-labelledby="groupement-tab">
+                    <div class="row">
+                        <!-- Colonne de gauche : Offres non groupées -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Offres disponibles</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group" id="offres-disponibles">
+                                        {% for offre_dispo in offres_disponibles %}
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                
+                                                {{ offre_dispo.titre|striptags }}
+                                                <button type="button" class="btn btn-sm btn-primary move-to-group" data-offre-id="{{ offre_dispo.id }}">
+                                                    <i class="fas fa-arrow-right"></i> 
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Colonne de droite : Groupe actuel -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Groupe actuel</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group" id="groupe-actuel">
+                                        <div class="list-group-item active" data-offre-id="{{ offre.id }}">
+                                            {{ offre.titre|striptags}} (Offre actuelle)
+                                        </div>
+                                        {% for offre_liee in offres_liees %}
+                                            <div class="list-group-item d-flex justify-content-between align-items-center" data-offre-id="{{ offre_liee.id }}">
+                                                {{ offre_liee.titre|striptags}}
+                                                <button type="button" class="btn btn-sm btn-danger move-to-available" data-offre-id="{{ offre_liee.id }}">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Submit button -->
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                <a href="{% url 'index' %}" class="btn btn-secondary">Retour à l'accueil</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal pour créer un nouveau groupe -->
+
+    <!-- Modal pour modifier le nom du groupe -->
+    <div class="modal fade" id="editGroupNameModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier le nom du groupe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editGroupName">Nouveau nom</label>
+                        <input type="text" class="form-control" id="editGroupName" value="{{ offre.groupe.nom }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="updateGroupNameBtn">Modifier</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        // Toggle Switch Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleInput = document.getElementById('afficher_heures_toggle');
+            const statusText = document.getElementById('toggle-status');
+            
+            if (toggleInput && statusText) {
+                toggleInput.addEventListener('change', function() {
+                    if (this.checked) {
+                        statusText.innerHTML = '<span class="toggle-enabled">✓ Afficher l\'heure avec la date</span>';
+                    } else {
+                        statusText.innerHTML = '<span class="toggle-disabled">○ Afficher seulement la date</span>';
+                    }
+                });
+            }
+        });
+        // Fonction pour déplacer une offre vers le groupe actuel
+        document.querySelectorAll('.move-to-group').forEach(button => {
+            button.addEventListener('click', function() {
+                const offerItem = this.parentElement;
+                const offerId = this.getAttribute('data-offre-id');
+    
+                // Déplacer l'offre vers le groupe actuel
+                document.getElementById('groupe-actuel').appendChild(offerItem);
+    
+                // Changer le bouton pour permettre de retirer l'offre du groupe
+                this.innerHTML = '<i class="fas fa-times"></i>';
+                this.classList.remove('btn-primary', 'move-to-group');
+                this.classList.add('btn-danger', 'move-to-available');
+    
+                // Mettre à jour l'événement du bouton
+                this.removeEventListener('click', arguments.callee);
+                this.addEventListener('click', moveToAvailableHandler);
+    
+                // Optionnel : Envoyer une requête AJAX pour mettre à jour le groupe côté serveur
+                ajouterAuGroupe(offerId);
+            });
+        });
+    
+        // Fonction pour déplacer une offre vers les offres disponibles
+        function moveToAvailableHandler() {
+            const offerItem = this.parentElement;
+            const offerId = this.getAttribute('data-offre-id');
+    
+            // Déplacer l'offre vers les offres disponibles
+            document.getElementById('offres-disponibles').appendChild(offerItem);
+    
+            // Changer le bouton pour permettre d'ajouter l'offre au groupe
+            this.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            this.classList.remove('btn-danger', 'move-to-available');
+            this.classList.add('btn-primary', 'move-to-group');
+    
+            // Mettre à jour l'événement du bouton
+            this.removeEventListener('click', moveToAvailableHandler);
+            this.addEventListener('click', moveToGroupHandler);
+    
+            // Optionnel : Envoyer une requête AJAX pour retirer l'offre du groupe côté serveur
+            retirerDuGroupe(offerId);
+        }
+    
+        // Fonction pour déplacer une offre vers le groupe actuel
+        function moveToGroupHandler() {
+            const offerItem = this.parentElement;
+            const offerId = this.getAttribute('data-offre-id');
+    
+            // Déplacer l'offre vers le groupe actuel
+            document.getElementById('groupe-actuel').appendChild(offerItem);
+    
+            // Changer le bouton pour permettre de retirer l'offre du groupe
+            this.innerHTML = '<i class="fas fa-times"></i>';
+            this.classList.remove('btn-primary', 'move-to-group');
+            this.classList.add('btn-danger', 'move-to-available');
+    
+            // Mettre à jour l'événement du bouton
+            this.removeEventListener('click', moveToGroupHandler);
+            this.addEventListener('click', moveToAvailableHandler);
+    
+            // Optionnel : Envoyer une requête AJAX pour mettre à jour le groupe côté serveur
+            ajouterAuGroupe(offerId);
+        }
+    
+        // Ajouter les écouteurs d'événements aux boutons existants
+        document.querySelectorAll('.move-to-available').forEach(button => {
+            button.addEventListener('click', moveToAvailableHandler);
+        });
+    
+        // Fonctions AJAX (à implémenter selon vos besoins)
+        function ajouterAuGroupe(offerId) {
+            // Envoyer une requête AJAX pour ajouter l'offre au groupe
+            console.log(`Offre ${offerId} ajoutée au groupe`);
+        }
+    
+        function retirerDuGroupe(offerId) {
+            // Envoyer une requête AJAX pour retirer l'offre du groupe
+            console.log(`Offre ${offerId} retirée du groupe`);
+        }
+
+        function ajouterAuGroupe(offerId) {
+            // Récupérer l'ID de l'offre actuelle
+            const currentOfferId = $('.list-group-item.active').data('offre-id');
+        
+            // Envoyer les deux IDs à la vue Django
+            $.ajax({
+                url: `/appels_offres/ajouter-au-groupe-appels-offre/`,
+                method: 'POST',
+                data: {
+                    current_offer_id: currentOfferId, // ID de l'offre actuelle
+                    offer_id: offerId, // ID de l'offre à ajouter
+                    csrfmiddlewaretoken: '{{ csrf_token }}', // Jeton CSRF pour Django
+                },
+                success: function(data) {
+                    if (data.success) {
+                        console.log(`Offre ${offerId} ajoutée au groupe avec succès.`);
+                    } else {
+                        console.error(`Erreur lors de l'ajout de l'offre ${offerId} au groupe.`);
+                    }
+                },
+                error: function(error) {
+                    console.error('Erreur réseau :', error);
+                },
+            });
+        }
+        
+        function retirerDuGroupe(offerId) {
+            // Récupérer l'ID de l'offre actuelle
+            const currentOfferId = $('.list-group-item.active').data('offre-id');
+        
+            // Envoyer les deux IDs à la vue Django
+            $.ajax({
+                url: `/appels_offres/retirer-du-groupe-appels-offre/`,
+                method: 'POST',
+                data: {
+                    current_offer_id: currentOfferId, // ID de l'offre actuelle
+                    offer_id: offerId, // ID de l'offre à retirer
+                    csrfmiddlewaretoken: '{{ csrf_token }}', // Jeton CSRF pour Django
+                },
+                success: function(data) {
+                    if (data.success) {
+                        console.log(`Offre "${data.offer_to_remove_name}" retirée du groupe de l'offre "${data.current_offer_name}".`);
+                    } else {
+                        console.error(`Erreur lors de la suppression de l'offre : ${data.error}`);
+                    }
+                },
+                error: function(error) {
+                    console.error('Erreur réseau :', error);
+                },
+            });
+        }
+
+        //Gestion des formulaires dynamiques.
+        //Gestion des formulaires dynamiques.
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("Script chargé !"); // ✅ Vérifie que le script est bien exécuté
+        
+            // 📌 Gestion des boutons "Retirer ce document" (y compris ceux ajoutés dynamiquement)
+            document.addEventListener("click", function (event) {
+                if (event.target.classList.contains("remove-document")) {
+                    event.preventDefault(); // Empêcher l'action immédiate
+                    console.log("Bouton 'Retirer ce document' cliqué !"); // ✅ Vérification
+        
+                    Swal.fire({
+                        title: "Êtes-vous sûr ?",
+                        text: "Ce document sera retiré et ne sera pas enregistré !",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#d33",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Oui, retirer !",
+                        cancelButtonText: "Annuler",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const formToRemove = event.target.closest(".document-form");
+        
+                            if (formToRemove) {
+                                console.log("Document trouvé :", formToRemove); // ✅ Vérification
+                                const deleteInput = formToRemove.querySelector('input[name$="-DELETE"]');
+        
+                                if (deleteInput) {
+                                    deleteInput.checked = true; // ✅ Marquer pour suppression
+                                    console.log("Document marqué pour suppression.");
+                                } else {
+                                    formToRemove.remove(); // ✅ Supprimer le document nouvellement ajouté
+                                    console.log("Document supprimé du DOM.");
+                                }
+        
+                                formToRemove.style.display = "none"; // ✅ Masquer le document
+                            }
+                        }
+                    });
+                }
+            });
+        
+            // 📌 Gestion des boutons "Supprimer" (documents existants en base de données)
+            document.querySelectorAll('.btn-danger').forEach(button => {
+                if (button.textContent.trim() === "Supprimer") {
+                    button.addEventListener("click", function (event) {
+                        event.preventDefault(); // Empêche l'action immédiate
+                        console.log("Bouton 'Supprimer' cliqué !"); // ✅ Vérification
+        
+                        Swal.fire({
+                            title: "Êtes-vous sûr ?",
+                            text: "Cette action est irréversible !",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#d33",
+                            cancelButtonColor: "#3085d6",
+                            confirmButtonText: "Oui, supprimer !",
+                            cancelButtonText: "Annuler",
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = event.target.href; // ✅ Redirige vers l'URL de suppression
+                            }
+                        });
+                    });
+                }
+            });
+        
+            // 📌 Ajout dynamique de formulaires
+            document.getElementById("add-document").addEventListener("click", function () {
+                console.log("Ajout d'un nouveau document."); // ✅ Vérification
+        
+                const totalFormsInput = document.getElementById("id_documents-TOTAL_FORMS");
+                const formCount = parseInt(totalFormsInput.value, 10);
+                const formContainer = document.createElement("div");
+                formContainer.classList.add("document-form", "mb-3", "border", "p-3");
+        
+                let newForm = `{{ document_formset.empty_form.as_p|escapejs }}`
+                    .replace(/__prefix__/g, formCount)
+                    .replace(/<p>/g, '<div class="mb-3">')
+                    .replace(/<\/p>/g, '</div>')
+                    .replace(/<label/g, '<label class="form-label"')
+                    .replace(/<input/g, '<input class="form-control"')
+                    .replace(/<textarea/g, '<textarea class="form-control"')
+                    .replace(/<select/g, '<select class="form-control"');
+        
+                formContainer.innerHTML = newForm;
+        
+                // Ajout du bouton "Retirer ce document"
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.classList.add("btn", "btn-danger", "remove-document");
+                removeButton.textContent = "Retirer ce document";
+                formContainer.appendChild(removeButton);
+        
+                document.getElementById("document-forms").appendChild(formContainer);
+        
+                // Mise à jour du nombre total de formulaires
+                totalFormsInput.value = formCount + 1;
+            });
+        
+            // 📌 Affichage des messages Django avec SweetAlert2
+            {% for message in messages %}
+                Swal.fire({
+                    toast: true,
+                    position: "top",
+                    icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% endif %}",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    background: "#fff",
+                    color: "#333"
+                });
+            {% endfor %}
+        });
+        
+        
+    </script>
+    
+
+{% endblock %}

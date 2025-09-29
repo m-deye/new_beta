@@ -1,0 +1,101 @@
+ 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Porte-Feuille - Rapport PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20mm;
+            font-size: 12pt;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .filters {
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        .filters p {
+            margin: 5px 0;
+        }
+        @page {
+            size: A4;
+            margin: 20mm;
+            @top-center {
+                content: "Rapport Porte-Feuille";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-right {
+                content: "Page " counter(page) " sur " counter(pages);
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Le Suivi de Porte-Feuille</h1>
+
+    <!-- Afficher les filtres appliqués -->
+    <div class="filters">
+        <p><strong>Intervalle :</strong> {% if date_debut %}{{ date_debut }}{% else %}Non spécifié{% endif %} au {% if date_fin %}{{ date_fin }}{% else %}Non spécifié{% endif %}</p>
+        <p><strong>Client :</strong> {% if selected_client %}{% for client in clients %}{% if client.id|stringformat:"s" == selected_client %}{{ client.libelle_fr }}{% endif %}{% endfor %}{% else %}Tous{% endif %}</p>
+        <p><strong>Utilisateur :</strong> {% if selected_utilisateur %}{% for utilisateur in utilisateurs %}{% if utilisateur.id|stringformat:"s" == selected_utilisateur %}{{ utilisateur.username }}{% endif %}{% endfor %}{% else %}Tous{% endif %}</p>
+        <p><strong>Catégorie :</strong> {% if selected_categorie %}
+            {% if selected_categorie == 'offre_emploi' %}Offre d'emploi
+            {% elif selected_categorie == 'appel_offre' %}Appel d'offre
+            {% elif selected_categorie == 'avis_infos' %}Avis et infos
+            {% endif %}
+        {% else %}Tous{% endif %}</p>
+    </div>
+
+    <!-- Tableau des annonces -->
+    <table>
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Annonce</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Utilisateur</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for annonce in annonces %}
+                <tr>
+                    <td>{{ annonce.client.libelle_fr }}</td>
+                    <td>{{ annonce.titre|safe }}</td>
+                    <td>{{ annonce.date_mise_en_ligne|date:"d/m/Y" }} {{ annonce.date_mise_en_ligne|time:"H:i:s" }}</td>
+                    <td>{{ annonce.type_display }}</td>
+                    <td>{{ annonce.valider_par }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">Aucune annonce trouvée.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

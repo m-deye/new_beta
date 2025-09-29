@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Créer un Nouveau Groupe</h2>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+<!-- Étape 1 : Informations -->
+<div id="info-step" class="mb-4" style="{% if step == 'assign_permissions' %}display: none;{% endif %}">
+    <form id="info-form" method="post" action="{% url 'creer_groupe' %}">
+        {% csrf_token %}
+        <input type="hidden" name="step" id="stepField" value="check_name">
+        <div class="mb-3">
+            <label for="nomGroupe" class="form-label">Nom du groupe</label>
+            <input type="text" class="form-control" id="nomGroupe" name="nom_groupe" required>
+            <div id="nomGroupeHelp" class="form-text text-danger" style="display:none;"></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="suivantPermissions">Suivant</button>
+        <button type="button" class="btn btn-success" id="creerDirect">Créer</button>
+        <a href="{% url 'gestion_permissions_groupes' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+
+<!-- Étape 2 : Permissions -->
+ 
+<div id="permissions-step" style="{% if step != 'assign_permissions' %}display: none;{% endif %}">
+    <form method="post" >
+        {% csrf_token %}
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Créer</button>
+            <button type="button" class="btn btn-secondary" id="retourInfo">Retour</button>
+            <a href="{% url 'gestion_permissions_groupes' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+        <input type="hidden" name="nom_groupe" id="nomGroupeHidden">
+        <input type="hidden" name="step" value="create_group">
+        <div class="row">
+            <!-- Permissions disponibles -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Permissions Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="permissions-disponibles">
+                            {% for perm in permissions %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ perm.name }}
+                                    <button type="button" class="btn btn-sm btn-primary ajouter-permission"
+                                            data-permission-id="{{ perm.id }}">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions attribuées -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Permissions Attribuées</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="permissions-groupe">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Créer</button>
+            <button type="button" class="btn btn-secondary" id="retourInfo">Retour</button>
+            <a href="{% url 'gestion_permissions_groupes' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const infoStep = document.getElementById('info-step');
+    const permissionsStep = document.getElementById('permissions-step');
+    const nomGroupeInput = document.getElementById('nomGroupe');
+    const nomGroupeHidden = document.getElementById('nomGroupeHidden');
+
+    // Passage à l'étape des permissions avec validation serveur
+    document.getElementById('suivantPermissions').addEventListener('click', function() {
+        const nom = nomGroupeInput.value.trim();
+        const help = document.getElementById('nomGroupeHelp');
+        help.style.display = 'none';
+        help.textContent = '';
+
+        if (nom === "") {
+            alert("Veuillez entrer un nom pour le groupe");
+            return;
+        }
+
+        // Vérification via AJAX
+        fetch('{% url "check_group_name" %}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+            },
+            body: new URLSearchParams({ nom_groupe: nom })
+        }).then(r => r.json()).then(data => {
+            if (data.exists) {
+                help.textContent = "Le nom du groupe existe déjà.";
+                help.style.display = 'block';
+                return;
+            }
+            nomGroupeHidden.value = nom;
+            infoStep.style.display = 'none';
+            permissionsStep.style.display = 'block';
+        }).catch(() => {
+            alert("Erreur de validation du nom du groupe. Réessayez.");
+        });
+    });
+
+    // Création directe du groupe sans passer à l'étape permissions
+    document.getElementById('creerDirect').addEventListener('click', function() {
+        const nom = nomGroupeInput.value.trim();
+        const help = document.getElementById('nomGroupeHelp');
+        help.style.display = 'none';
+        help.textContent = '';
+
+        if (nom === "") {
+            alert("Veuillez entrer un nom pour le groupe");
+            return;
+        }
+
+        fetch('{% url "check_group_name" %}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+            },
+            body: new URLSearchParams({ nom_groupe: nom })
+        }).then(r => r.json()).then(data => {
+            if (data.exists) {
+                help.textContent = "Le nom du groupe existe déjà.";
+                help.style.display = 'block';
+                return;
+            }
+            document.getElementById('stepField').value = 'create_group';
+            document.getElementById('info-form').submit();
+        }).catch(() => {
+            alert("Erreur de validation du nom du groupe. Réessayez.");
+        });
+    });
+
+    // Retour à l'étape info
+    document.getElementById('retourInfo').addEventListener('click', function() {
+        permissionsStep.style.display = 'none';
+        infoStep.style.display = 'block';
+    });
+
+    // Gestion des permissions (côté client uniquement)
+    document.querySelectorAll('.ajouter-permission').forEach(button => {
+        button.addEventListener('click', function() {
+            const permissionId = this.dataset.permissionId;
+            const item = this.parentElement;
+            const permissionsGroupe = document.getElementById('permissions-groupe');
+            
+            // Ajouter un input caché pour le formulaire
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'permissions';
+            input.value = permissionId;
+            item.appendChild(input);
+
+            // Modifier l'apparence et le comportement
+            permissionsGroupe.appendChild(item);
+            this.classList.remove('btn-primary', 'ajouter-permission');
+            this.classList.add('btn-danger', 'retirer-permission');
+            this.innerHTML = '<i class="fas fa-times"></i>';
+
+            // Changer l'événement
+            this.removeEventListener('click', arguments.callee);
+            this.addEventListener('click', function() {
+                const permissionsDisponibles = document.getElementById('permissions-disponibles');
+                permissionsDisponibles.appendChild(item);
+                item.removeChild(input);
+                this.classList.remove('btn-danger', 'retirer-permission');
+                this.classList.add('btn-primary', 'ajouter-permission');
+                this.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

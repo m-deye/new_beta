@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Liste des paramètres</h2>
+
+        {% if not parametres %}
+          <a href="{% url 'creer_parametres' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Ajouter
+          </a>
+        {% endif %}
+        
+    </div>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Offres (FR)</th>
+          <th>Appels (FR)</th>
+          <th>Avis (FR)</th>
+          <th>Offres (AR)</th>
+          <th>Appels (AR)</th>
+          <th>Avis (AR)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in parametres %}
+          <tr>
+            <td>{{ p.nombreoffres }}</td>
+            <td>{{ p.nombreapples }}</td>
+            <td>{{ p.nombreavis }}</td>
+            <td>{{ p.nombreoffresAr }}</td>
+            <td>{{ p.nombreapplesAr }}</td>
+            <td>{{ p.nombreavisAr }}</td>
+            <td>
+              <!-- Modifier -->
+              <a href="{% url 'modifier_parametres' p.id %}"
+                 class="btn btn-sm btn-primary"
+                 title="Modifier">
+                <i class="fas fa-edit"></i>
+              </a>
+              <!-- Supprimer (modale) -->
+              {% comment %} <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-param-id="{{ p.id }}" title="Supprimer">
+                        <i class="fas fa-trash-alt"></i>
+              </button> {% endcomment %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- ✅ Modale de suppression -->
+  <div class="modal fade"
+       id="deleteModal"
+       tabindex="-1"
+       aria-labelledby="deleteModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" id="deleteForm">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Confirmation de suppression</h5>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body">Voulez-vous vraiment supprimer ce paramètre ?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- ✅ Script JavaScript -->
+  <script>
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteForm = document.getElementById('deleteForm');
+
+  deleteModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const paramId = button.getAttribute('data-param-id');
+    deleteForm.action = `/parametres/supprimer/${paramId}/`;
+  });
+  </script>
+{% endblock %}

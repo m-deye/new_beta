@@ -1,0 +1,98 @@
+/* DetailOffreEmploi.css */
+
+.container.bg-white {
+    background-color: #fff !important;
+    padding: 1.5rem;
+}
+
+table {
+    width: 100% !important;
+}
+
+#divText img {
+    max-width: 100% !important;
+}
+
+body {
+    font-size: 14px !important;
+    color: #040404 !important;
+    line-height: 1.2;
+    font-family: Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.card {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+
+
+.font-weight-bold {
+    font-weight: bold;
+}
+
+.text-beta {
+    color: #4e73df; /* Couleur personnalisée pour "text-beta" */
+}
+
+.text-danger {
+    color: #e74a3b !important; /* Couleur rouge pour les dates et lieux */
+}
+
+.titreDocument {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.titreDoc {
+    color: #4e73df; /* Couleur personnalisée pour les liens */
+    text-decoration: none;
+}
+
+.titreDoc:hover {
+    text-decoration: underline;
+}
+
+.card-footer {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fc; /* Couleur de fond pour le footer */
+}
+
+.btn-group {
+    margin-top: 1rem;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #375ab5;
+    border-color: #375ab5;
+}
+
+.fab {
+    font-size: 1.5rem;
+    margin: 0 0.5rem;
+}
+
+.fa-facebook {
+    color: #3b5998; /* Couleur Facebook */
+}
+
+.fa-linkedin {
+    color: #0077b5; /* Couleur LinkedIn */
+}
+
+.fa-whatsapp {
+    color: #25d366; /* Couleur WhatsApp */
+}
+
+.rtl .container.bg-white {
+    direction: rtl;    /* redéfinit l’orientation du texte */
+    text-align: right; /* aligne tout à droite */
+  }

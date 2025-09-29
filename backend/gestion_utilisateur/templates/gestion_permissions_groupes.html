@@ -1,0 +1,282 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container">
+  <h2>Gestion des Permissions des Groupes</h2>
+  <div class="d-flex justify-content-end mb-3">
+    {% if perms.auth.add_group %}
+    <a href="{% url 'creer_groupe' %}" class="btn btn-primary"
+      >Créer un groupe</a
+    >
+    {% endif %}
+  </div>
+  {% if messages %} {% for message in messages %}
+  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %} {% endif %}
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Groupe</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for groupe, permissions_grouped in groupes_permissions.items %}
+      <tr>
+        <td>{{ groupe.name }}</td>
+        <td>
+          <!-- Bouton Voir -->
+          {% if perms.auth.view_group %}
+          <button
+            class="btn btn-sm btn-info"
+            data-bs-toggle="modal"
+            data-bs-target="#voirPermissions{{ groupe.id }}"
+          >
+            Voir
+          </button>
+          {% endif %}
+          <!-- Modal Voir les permissions -->
+          <div
+            class="modal fade"
+            id="voirPermissions{{ groupe.id }}"
+            tabindex="-1"
+          >
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">
+                    Permissions du groupe {{ groupe.name }}
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                </div>
+                <div class="modal-body">
+                  {% if permissions_grouped %}
+                  <ul class="list-unstyled">
+                    {% for perm_text in permissions_grouped.values %}
+                    <li>
+                      <span class="badge bg-secondary">{{ perm_text }}</span>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p>Aucune permission</p>
+                  {% endif %}
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Bouton Modifier -->
+
+          {% if perms.auth.change_permission %}
+          <a
+            href="{% url 'modifier_permissions_groupe' groupe.id %}"
+            class="btn btn-sm btn-warning"
+          >
+            Modifier
+          </a>
+          {% endif %} {% comment %}
+          <button
+            class="btn btn-sm btn-warning"
+            data-bs-toggle="modal"
+            data-bs-target="#modifierPermissions{{ groupe.id }}"
+          >
+            Modifier
+          </button>
+          {% endcomment %}
+
+          <!-- Modal Modifier les permissions -->
+          {% comment %}
+          <div
+            class="modal fade"
+            id="modifierPermissions{{ groupe.id }}"
+            tabindex="-1"
+          >
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">
+                    Modifier les permissions de {{ groupe.name }}
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row">
+                    <!-- Colonne de gauche : Permissions disponibles -->
+                    <div class="col-md-6">
+                      <div class="card">
+                        <div class="card-header">
+                          <h5 class="mb-0">Permissions disponibles</h5>
+                        </div>
+                        <div class="card-body">
+                          <div
+                            class="list-group"
+                            id="permissions-disponibles-{{ groupe.id }}"
+                          >
+                            {% for perm in permissions %} {% if perm not in
+                            groupe.permissions.all %}
+                            <div
+                              class="list-group-item d-flex justify-content-between align-items-center"
+                            >
+                              {{ perm.name }}
+                              <button
+                                type="button"
+                                class="btn btn-sm btn-primary ajouter-permission"
+                                data-groupe-id="{{ groupe.id }}"
+                                data-permission-id="{{ perm.id }}"
+                              >
+                                <i class="fas fa-arrow-right"></i>
+                              </button>
+                            </div>
+                            {% endif %} {% endfor %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Colonne de droite : Permissions du groupe -->
+                    <div class="col-md-6">
+                      <div class="card">
+                        <div class="card-header">
+                          <h5 class="mb-0">Permissions attribuées</h5>
+                        </div>
+                        <div class="card-body">
+                          <div
+                            class="list-group"
+                            id="permissions-groupe-{{ groupe.id }}"
+                          >
+                            {% for perm in groupe.permissions.all %}
+                            <div
+                              class="list-group-item d-flex justify-content-between align-items-center"
+                            >
+                              {{ perm.name }}
+                              <button
+                                type="button"
+                                class="btn btn-sm btn-danger retirer-permission"
+                                data-groupe-id="{{ groupe.id }}"
+                                data-permission-id="{{ perm.id }}"
+                              >
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endcomment %}
+          <!-- Bouton Supprimer -->
+          <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="groupe_id" value="{{ groupe.id }}" />
+            {% if perms.auth.delete_group %}
+            <button
+              type="submit"
+              name="action"
+              value="supprimer_groupe"
+              class="btn btn-sm btn-danger"
+              onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?');"
+            >
+              Supprimer
+            </button>
+            {% endif %}
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<!-- Bootstrap JS (with Popper.js included) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Ajouter une permission au groupe
+    document.querySelectorAll(".ajouter-permission").forEach((button) => {
+      button.addEventListener("click", function () {
+        const groupeId = this.dataset.groupeId;
+        const permissionId = this.dataset.permissionId;
+        const item = this.parentElement;
+
+        fetch("/ajouter-permission-groupe/", {
+          method: "POST",
+          headers: { "X-CSRFToken": "{{ csrf_token }}" },
+          body: new URLSearchParams({
+            groupe_id: groupeId,
+            permission_id: permissionId,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              document
+                .getElementById(`permissions-groupe-${groupeId}`)
+                .appendChild(item);
+              this.classList.remove("btn-primary", "ajouter-permission");
+              this.classList.add("btn-danger", "retirer-permission");
+              this.innerHTML = '<i class="fas fa-times"></i>';
+            }
+          });
+      });
+    });
+
+    // Retirer une permission du groupe
+    document.querySelectorAll(".retirer-permission").forEach((button) => {
+      button.addEventListener("click", function () {
+        const groupeId = this.dataset.groupeId;
+        const permissionId = this.dataset.permissionId;
+        const item = this.parentElement;
+
+        fetch("/retirer-permission-groupe/", {
+          method: "POST",
+          headers: { "X-CSRFToken": "{{ csrf_token }}" },
+          body: new URLSearchParams({
+            groupe_id: groupeId,
+            permission_id: permissionId,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              document
+                .getElementById(`permissions-disponibles-${groupeId}`)
+                .appendChild(item);
+              this.classList.remove("btn-danger", "retirer-permission");
+              this.classList.add("btn-primary", "ajouter-permission");
+              this.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            }
+          });
+      });
+    });
+  });
+</script>
+{% endblock %}

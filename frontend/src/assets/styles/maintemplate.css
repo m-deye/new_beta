@@ -1,0 +1,239 @@
+/* main.css */
+.container_template {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  line-height: 1;
+}
+.rowmain {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.75rem;
+  margin-left: -0.75rem;
+}
+
+.col-md-3,
+.col-md-6 {
+  position: relative;
+  width: 100%;
+  padding-right: 0rem;
+  padding-left: 0rem;
+}
+
+@media (min-width: 768px) {
+  .col-md-3 {
+    flex: 0 0 25% !important;
+    max-width: 25% !important;
+    flex: 1 1 100% !important;
+  }
+  .col-md-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    flex: 1 1 100% !important;
+  }
+}
+
+.Carteimprinci {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: 40000px;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.25rem;
+}
+
+.card-2 {
+  background-color: #dee7ef;
+  width: 100%;
+  padding-top: 6px;
+}
+
+.bgCard_offre {
+  background-color: #dee7ef;
+}
+
+.titrecol {
+  /* font-weight: bold !important;
+  color: #000 !important; */
+  margin-bottom: 1rem; /* Espacement après le titre */
+}
+
+.titre_size {
+  display: block !important; /* Chaque lien sur une nouvelle ligne */
+  margin-bottom: 0.5rem !important; /* Espacement entre les liens */
+  /* color: #007bff; */
+}
+
+.post-card {
+  margin-bottom: 0px;
+}
+
+.post-card-heading {
+  font-size: 14px;
+  color: #000;
+}
+
+.post-card-limit {
+  font-size: 12px;
+  color: #000;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3 !important;
+  border-color: #004085 !important;
+}
+
+/* Ajustement des cartes pour qu'elles s'adaptent au contenu */
+/* .card {
+  display: flex ;
+  flex-direction: column ;
+  flex-grow: 1; 
+  width: 100%;
+  word-wrap: break-word ;
+} */
+
+.section_applesoffre {
+  margin-left: 8px;
+  margin-bottom: -8px;
+  font-size: 12px;
+  color: #4e73df;
+  font-weight: bold;
+}
+
+.card_appleoffre {
+  width: 96%;
+  margin-left: 8px;
+  margin-bottom: 2px;
+}
+
+.logoappleoffre {
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+  margin-left: -12px;
+}
+
+.titre_appleoffre {
+  margin-left: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: normal;
+  margin-top: -8px;
+}
+
+.titre_group_apple {
+  text-decoration: none !important;
+  font-size: 11px;
+  color: inherit;
+  line-height: 1.2;
+  margin-top: -80px;
+}
+.datelimitappleoffre {
+  font-size: 9.6px;
+  margin-left: 3px;
+  margin-top: -10px;
+}
+.lieuappleoffre {
+  padding-left: 15px;
+  font-size: 9.6px;
+  margin-top: -10px;
+}
+
+.btnoffreemplois {
+  background-color: #4e73df;
+  width: 95%;
+  margin-left: 15px;
+  padding: 8px;
+}
+
+.toptitreaplle {
+  margin-top: -13px;
+}
+.toptitre {
+  margin-top: -8px;
+}
+
+.textemplois {
+  margin-top: 2px;
+  color: #ff9900;
+  font-size: 15px;
+  font-style: italic;
+}
+
+.texconsultant {
+  color: #0c74cc;
+  text-decoration: none !important;
+  font-size: 15px;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.textnone {
+  text-decoration: none !important;
+}
+
+.row1 {
+  margin-left: 1px;
+}
+
+.textemploisecard {
+  margin-left: 3px;
+  color: #0c74cc;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.avisinfo {
+  margin-bottom: -3px;
+  color: #ff9900;
+  margin-left: 5px;
+  font-size: 15px;
+  font-style: italic;
+}
+
+.sectionavisinfo {
+  width: 95%;
+  margin-left: 4px;
+  margin-right: 8px;
+  margin-bottom: 2px;
+}
+
+.textavis {
+  margin-left: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: normal;
+  margin-top: -3px;
+}
+
+.mbavis {
+  margin-bottom: -15px;
+}
+
+.titregroup {
+  margin-left: 3px;
+  /* margin-top: -28px; */
+}
+
+.titregroupemlois {
+  margin-left: 3px;
+  margin-top: -13px;
+} 
+
+.titregroupappleoffre {
+  margin-left: 3px;
+  margin-top: -15px;
+}

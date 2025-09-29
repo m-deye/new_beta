@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    <h1>Espace Candidat - {{ candidat.utilisateur.username }}</h1>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active"
+           id="info-tab"
+           data-toggle="tab"
+           href="#info"
+           role="tab"
+           aria-controls="info"
+           aria-selected="true">Informations Personnelles</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="diplomes-tab"
+           data-toggle="tab"
+           href="#diplomes"
+           role="tab"
+           aria-controls="diplomes"
+           aria-selected="false">Diplômes</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="langues-tab"
+           data-toggle="tab"
+           href="#langues"
+           role="tab"
+           aria-controls="langues"
+           aria-selected="false">Langues</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="experiences-tab"
+           data-toggle="tab"
+           href="#experiences"
+           role="tab"
+           aria-controls="experiences"
+           aria-selected="false">Expériences Professionnelles</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link"
+           id="specialisations-tab"
+           data-toggle="tab"
+           href="#specialisations"
+           role="tab"
+           aria-controls="specialisations"
+           aria-selected="false">Spécialisations</a>
+      </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+      <!-- Informations Personnelles -->
+      <div class="tab-pane fade show active"
+           id="info"
+           role="tabpanel"
+           aria-labelledby="info-tab">
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Informations Personnelles</h5>
+            <form method="post"
+                  action="{% url 'update_candidate_info' candidat.utilisateur.id %}">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text"
+                       class="form-control"
+                       id="prenom"
+                       name="prenom"
+                       value="{{ candidat.prenom|default:'' }}">
+              </div>
+              <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text"
+                       class="form-control"
+                       id="nom"
+                       name="nom"
+                       value="{{ candidat.nom|default:'' }}">
+              </div>
+              <div class="form-group">
+                <label for="prenom_ar">Prénom (Arabe)</label>
+                <input type="text"
+                       class="form-control"
+                       id="prenom_ar"
+                       name="prenom_ar"
+                       value="{{ candidat.prenom_ar|default:'' }}">
+              </div>
+              <div class="form-group">
+                <label for="nom_ar">Nom (Arabe)</label>
+                <input type="text"
+                       class="form-control"
+                       id="nom_ar"
+                       name="nom_ar"
+                       value="{{ candidat.nom_ar|default:'' }}">
+              </div>
+              <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="text"
+                       class="form-control"
+                       id="telephone"
+                       name="telephone"
+                       value="{{ candidat.telephone|default:'' }}">
+              </div>
+              <div class="form-group">
+                <label for="pays">Pays</label>
+                <select class="form-control" id="pays" name="pays">
+                  <option value="Mauritanie"
+                          {% if candidat.pays == "Mauritanie" %}selected{% endif %}>Mauritanie</option>
+                  <option value="France" {% if candidat.pays == "France" %}selected{% endif %}>France</option>
+                  <option value="Autre" {% if candidat.pays == "Autre" %}selected{% endif %}>Autre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="adresse">Adresse</label>
+                <textarea class="form-control" id="adresse" name="adresse">{{ candidat.adresse|default:'' }}</textarea>
+              </div>
+              <div class="form-group">
+                <label for="date_naissance">Date de Naissance</label>
+                <input type="date"
+                       class="form-control"
+                       id="date_naissance"
+                       name="date_naissance"
+                       value="{{ candidat.date_naissance|date:'Y-m-d'|default:'' }}">
+              </div>
+              <div class="form-group">
+                <label for="lieu_naissance">Lieu de Naissance</label>
+                <select class="form-control" id="lieu_naissance" name="lieu_naissance">
+                  <option value="Trarza"
+                          {% if candidat.lieu_naissance == "Trarza" %}selected{% endif %}>Trarza</option>
+                  <option value="Nouakchott"
+                          {% if candidat.lieu_naissance == "Nouakchott" %}selected{% endif %}>Nouakchott</option>
+                  <option value="Autre"
+                          {% if candidat.lieu_naissance == "Autre" %}selected{% endif %}>Autre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="genre">Genre</label>
+                <select class="form-control" id="genre" name="genre">
+                  <option value="Homme" {% if candidat.genre == "Homme" %}selected{% endif %}>Homme</option>
+                  <option value="Femme" {% if candidat.genre == "Femme" %}selected{% endif %}>Femme</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Diplômes -->
+      <div class="tab-pane fade"
+           id="diplomes"
+           role="tabpanel"
+           aria-labelledby="diplomes-tab">
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Diplômes</h5>
+            <form method="post"
+                  action="{% url 'update_diplome' candidat.utilisateur.id %}">
+              {% csrf_token %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Diplôme</th>
+                    <th>Établissement</th>
+                    <th>Date de Début</th>
+                    <th>Date de Fin</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for diplome in candidat.diplomes.all %}
+                    <tr>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="diplome_{{ diplome.id }}"
+                               value="{{ diplome.diplome }}">
+                      </td>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="etablissement_{{ diplome.id }}"
+                               value="{{ diplome.etablissement }}">
+                      </td>
+                      <td>
+                        <input type="date"
+                               class="form-control"
+                               name="date_debut_{{ diplome.id }}"
+                               value="{{ diplome.date_debut|date:'Y-m-d' }}">
+                      </td>
+                      <td>
+                        <input type="date"
+                               class="form-control"
+                               name="date_fin_{{ diplome.id }}"
+                               value="{{ diplome.date_fin|date:'Y-m-d' }}">
+                      </td>
+                      <td>
+                        <a href="{% url 'delete_diplome' diplome.id %}" class="btn btn-danger">Supprimer</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_diplome"
+                             placeholder="Nouveau diplôme">
+                    </td>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_etablissement"
+                             placeholder="Nouvel établissement">
+                    </td>
+                    <td>
+                      <input type="date" class="form-control" name="new_date_debut">
+                    </td>
+                    <td>
+                      <input type="date" class="form-control" name="new_date_fin">
+                    </td>
+                    <td>
+                      <button type="submit" name="add_diplome" class="btn btn-success">Ajouter</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Langues -->
+      <div class="tab-pane fade"
+           id="langues"
+           role="tabpanel"
+           aria-labelledby="langues-tab">
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Langues</h5>
+            <form method="post"
+                  action="{% url 'update_langue' candidat.utilisateur.id %}">
+              {% csrf_token %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Langue</th>
+                    <th>Niveau</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for langue in candidat.langues.all %}
+                    <tr>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="langue_{{ langue.id }}"
+                               value="{{ langue.langue }}">
+                      </td>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="niveau_{{ langue.id }}"
+                               value="{{ langue.niveau }}">
+                      </td>
+                      <td>
+                        <a href="{% url 'delete_langue' langue.id %}" class="btn btn-danger">Supprimer</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_langue"
+                             placeholder="Nouvelle langue">
+                    </td>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_niveau"
+                             placeholder="Niveau">
+                    </td>
+                    <td>
+                      <button type="submit" name="add_langue" class="btn btn-success">Ajouter</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Expériences Professionnelles -->
+      <div class="tab-pane fade"
+           id="experiences"
+           role="tabpanel"
+           aria-labelledby="experiences-tab">
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Expériences Professionnelles</h5>
+            <form method="post"
+                  action="{% url 'update_experience' candidat.utilisateur.id %}">
+              {% csrf_token %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Entreprise</th>
+                    <th>Poste</th>
+                    <th>Date de Début</th>
+                    <th>Date de Fin</th>
+                    <th>En Cours</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for exp in candidat.experiences.all %}
+                    <tr>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="nom_entreprise_{{ exp.id }}"
+                               value="{{ exp.nom_entreprise }}">
+                      </td>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="poste_{{ exp.id }}"
+                               value="{{ exp.poste }}">
+                      </td>
+                      <td>
+                        <input type="date"
+                               class="form-control"
+                               name="date_debut_{{ exp.id }}"
+                               value="{{ exp.date_debut|date:'Y-m-d' }}">
+                      </td>
+                      <td>
+                        <input type="date"
+                               class="form-control"
+                               name="date_fin_{{ exp.id }}"
+                               value="{{ exp.date_fin|date:'Y-m-d'|default:'' }}">
+                      </td>
+                      <td>
+                        <input type="checkbox"
+                               name="en_cours_{{ exp.id }}"
+                               {% if exp.en_cours %}checked{% endif %}>
+                      </td>
+                      <td>
+                        <a href="{% url 'delete_experience' exp.id %}" class="btn btn-danger">Supprimer</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_nom_entreprise"
+                             placeholder="Nouvelle entreprise">
+                    </td>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_poste"
+                             placeholder="Nouveau poste">
+                    </td>
+                    <td>
+                      <input type="date" class="form-control" name="new_date_debut">
+                    </td>
+                    <td>
+                      <input type="date" class="form-control" name="new_date_fin">
+                    </td>
+                    <td>
+                      <input type="checkbox" name="new_en_cours">
+                    </td>
+                    <td>
+                      <button type="submit" name="add_experience" class="btn btn-success">Ajouter</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Spécialisations -->
+      <div class="tab-pane fade"
+           id="specialisations"
+           role="tabpanel"
+           aria-labelledby="specialisations-tab">
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Spécialisations</h5>
+            <form method="post"
+                  action="{% url 'update_specialisation' candidat.utilisateur.id %}">
+              {% csrf_token %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Niveau d'Étude</th>
+                    <th>Expérience</th>
+                    <th>Domaine</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for spec in candidat.specialisations.all %}
+                    <tr>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="titre_specialisation_{{ spec.id }}"
+                               value="{{ spec.titre_specialisation }}">
+                      </td>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="niveaux_etude_{{ spec.id }}"
+                               value="{{ spec.niveaux_etude|default:'' }}">
+                      </td>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="experience_{{ spec.id }}"
+                               value="{{ spec.experience|default:'' }}">
+                      </td>
+                      <td>
+                        <input type="text"
+                               class="form-control"
+                               name="domaine_{{ spec.id }}"
+                               value="{{ spec.domaine|default:'' }}">
+                      </td>
+                      <td>
+                        <a href="{% url 'delete_specialisation' spec.id %}"
+                           class="btn btn-danger">Supprimer</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_titre_specialisation"
+                             placeholder="Nouveau titre">
+                    </td>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_niveaux_etude"
+                             placeholder="Niveau d'étude">
+                    </td>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_experience"
+                             placeholder="Expérience">
+                    </td>
+                    <td>
+                      <input type="text"
+                             class="form-control"
+                             name="new_domaine"
+                             placeholder="Domaine">
+                    </td>
+                    <td>
+                      <button type="submit" name="add_specialisation" class="btn btn-success">Ajouter</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5 class="card-title">Actions sur le CV</h5>
+        <form method="post"
+              action="{% url 'validate_cv' candidat.utilisateur.id %}">
+          {% csrf_token %}
+          <button type="submit"
+                  class="btn btn-success"
+                  {% if candidat.cv_validated %}disabled{% endif %}>Valider le CV</button>
+        </form>
+        {% comment %} {% if candidat.cv %}
+          <a href="{{ candidat.cv.url }}" class="btn btn-primary" download>Visualiser/Télécharger CV</a> 
+        {% else %}
+          <p>Pas de CV disponible. <a href="#" class="btn btn-info">Générer un CV</a></p>
+        {% endif %} {% endcomment %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

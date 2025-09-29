@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+{% load perm_tags %}
+
+{% block content %}
+
+<!-- Modale pour afficher les détails de l'offre -->
+<!-- Modale pour afficher les détails de l'offre -->
+<div class="modal fade" id="offreModal" tabindex="-1" role="dialog" aria-labelledby="offreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="offreModalLabel">Détails de l'offre</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <p><strong>Description :</strong></p>
+                    <div id="modal-description" class="wysiwyg-content border p-2" style="max-height: 300px; overflow-y: auto;"></div>
+                    
+                    <p><strong>Date limite :</strong> <span id="modal-date-limite" class="badge badge-primary"></span></p>
+                    <p><strong>Lieu :</strong> <span id="modal-lieu"></span></p>
+                    <p><strong>Statut :</strong> <span id="modal-statut" class="badge"></span></p>
+
+                    <h2>Documents associés</h2>
+                    <ul id="modal-documents" class="list-group">
+                        <!-- Les documents seront injectés ici dynamiquement -->
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Begin Page Content -->
+<div class="container-fluid"><div class="d-flex justify-content-between align-items-center mb-3">
+    <center><h1>Liste des appels d'offres </h1></center>
+    {% if perms.appels_offres.add_appeloffre %}
+        <a href="{% url 'creer_appels_offres' %}">
+            <button type="button" class="btn btn-primary">Créer une appels d'offres </button>
+        </a>
+    {% endif %}
+</div>
+       
+
+
+    <div class="container-fluid">
+        <p class="mb-4"></p>
+
+        <!-- DataTales Example -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <!-- Tableau des offres -->
+
+
+                    {% comment %} {% if perms.appels_offres.view_appeloffre %} {% endcomment %}
+                    {% if user|has_implied_permission:'view_appeloffre' %}
+
+                    <table class="table table-hover table-striped" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Nombre de vues</th>
+                                <th>État</th>
+                                <th>Client</th>
+                                <th>Date limite</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for offre in offres %}
+                            {% comment %} class="{% if offre.si_valider %}table-success{% else %}table-danger{% endif %}" {% endcomment %}
+                            <tr >
+                                <td>
+                                    <a href="http://localhost:3000/appel-offre/{{ offre.id }}" target="_blank" class="text-primary text-decoration-none">
+                                        {{ offre.titre|safe }}
+                                    </a>
+                                </td>
+                                <td>{{ offre.nombre_vu }}</td>
+                                <td>
+                                    {% if offre.si_valider %}
+                                        Validé
+                                    {% else %}
+                                        Non Validé
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if offre.client and offre.client.libelle_fr %}
+                                        {{ offre.client.libelle_fr }}
+                                    {% else %}
+                                        {{ offre.client.utilisateur.username }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ offre.date_limite|date:"d/m/Y" }}</td>
+
+                                <td>
+                                    <form method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="offre_id" value="{{ offre.id }}">
+                                        
+                                        <!-- Bouton Publier/Dépublier -->
+                                        {% comment %} {% if offre.si_publier %}
+                                            <button class="btn btn-danger btn-icon-split" type="submit" name="action" value="depublier" title="Dépublier l'offre" style="margin: 3px;">
+                                                <i class="fa-regular fa-globe-pointer"></i>
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-success btn-icon-split" type="submit" name="action" value="publier" {% if not offre.si_valider %}disabled{% endif %} title="Publier l'offre" style="margin: 3px;">
+                                                <i class="fa-regular fa-globe-pointer"></i>
+                                            </button>
+                                        {% endif %} {% endcomment %}
+                                            
+                                        <!-- Boutons Supprimer, Modifier et Détails -->
+                                        {% if perms.appels_offres.delete_appeloffre %}
+                                        <button class="btn btn-danger btn-icon-split" 
+                                            onclick="submitAction('supprimer', {{ offre.id }})"
+                                            type="submit" name="action" 
+                                            value="supprimer" {% if offre.si_valider %}disabled{% endif %} 
+                                            title="Supprimer l'offre" 
+                                            style="margin: 3px;">
+                                            <i class="fa-sharp fa-solid fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+
+                                        {% if perms.appels_offres.change_appeloffre %}
+                                        <button class="btn btn-success btn-icon-split" 
+                                            onclick="submitAction('modifier', {{ offre.id }})"
+                                            type="submit" name="action" 
+                                            value="modifier" {% if offre.si_valider %}disabled{% endif %} 
+                                            title="Modifier l'offre" 
+                                            style="margin: 3px;">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        {% endif %}
+                                        
+                                        <!-- Bouton Valider/Invalider -->
+                                      {% if perms.appels_offres.valider_appeloffre  %}
+                                        {% if perms.appels_offres.valider_ar_appeloffre  %}
+                                            <div class="dropdown" style="display:inline-block; margin: 3px;">
+                                                <button class="btn btn-primary btn-icon-split dropdown-toggle" type="button" id="dropdownMenuButton_{{ offre.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Valider ou invalider l'appel d'offres" aria-label="Menu pour valider ou invalider l'appel d'offres">
+                                                    <i class="fa-solid fa-badge-check"></i>
+                                                </button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton_{{ offre.id }}">
+                                                {% if not offre.si_valider %}
+                                                    <a class="dropdown-item" href="#" onclick="submitAction('valider_fr', {{ offre.id }})">Valider FR</a>
+                                                {% else %}
+                                                    <a class="dropdown-item" href="#" onclick="submitAction('invalider_fr', {{ offre.id }})">Invalider FR</a>
+                                                {% endif %}
+                                                {% if not offre.si_valider_ar %}
+                                                    <a class="dropdown-item" href="#" onclick="submitAction('valider_ar', {{ offre.id }})">Valider AR</a>
+                                                {% else %}
+                                                    <a class="dropdown-item" href="#" onclick="submitAction('invalider_ar', {{ offre.id }})">Invalider AR</a>
+                                                {% endif %}
+
+                                                {% if not offre.a_traduire %}
+                                                    <a class="dropdown-item" href="#" onclick="submitAction('Valide_a_traduire', {{ offre.id }})">Valide l'accès AR</a>
+                                                {% else %}
+                                                    <a class="dropdown-item" href="#" onclick="submitAction('Invalider_a_traduire', {{ offre.id }})">Invalider l'accès AR</a>
+                                                {% endif %}
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="action" id="action_{{ offre.id }}">
+                                        {% else %}
+                                            {% if offre.si_valider %}
+                                                <button class="btn btn-danger btn-icon-split" 
+                                            onclick="submitAction('invalider_fr', {{ offre.id }})"
+                                            type="submit" name="action" value="invalider_fr"
+                                             title="Dévalider l'offre AR" style="margin: 3px;">
+                                                <i class="fa-solid fa-badge-check"></i>
+                                            </button>
+                                            {% else %}
+                                                <button class="btn btn-danger btn-icon-split" 
+                                            onclick="submitAction('valider_fr', {{ offre.id }})"
+                                            type="submit" name="action" value="valider_fr"
+                                             title="Dévalider l'offre AR" style="margin: 3px;">
+                                                <i class="fa-solid fa-badge-check"></i>
+                                            </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% elif perms.appels_offres.valider_ar_appeloffre  %}
+                                        {% if offre.si_valider_ar %}
+                                            <button class="btn btn-danger btn-icon-split" 
+                                            onclick="submitAction('invalider_ar', {{ offre.id }})"
+                                            type="submit" name="action" value="invalider_ar"
+                                             title="Dévalider l'offre AR" style="margin: 3px;">
+                                                <i class="fa-solid fa-badge-check"></i>
+                                            </button>
+                                        {% else %}
+                                        <button class="btn btn-success btn-icon-split" 
+                                            onclick="submitAction('valider_ar', {{ offre.id }})"
+                                            type="submit" name="action" value="valider_ar"
+                                             title="Dévalider l'offre AR" style="margin: 3px;">
+                                                <i class="fa-solid fa-badge-check"></i>
+                                            </button> 
+                                        {% endif %} 
+                                    {% endif %}
+                                        {% if perms.appels_offres.traduire_appeloffre %}
+                                        <a href="{% url 'traduire_appel_offre' offre.id %}" class="btn btn-warning btn-icon-split" title="Traduire l'offre" style="margin: 3px;">
+                                            <i class="fa-solid fa-language"></i>
+                                        </a>
+                                        {% comment %} <button class="btn btn-danger btn-icon-split" type="submit" name="action" value="a_traduire" title="acee a traduction" style="margin: 3px;">
+                                                <i class="fa-solid fa-badge-check"></i>
+                                        </button> {% endcomment %}
+                                        {% endif %}   
+                                        <!-- Bouton pour ouvrir la modale des détails -->
+                                        <!-- <button type="button" class="btn btn-info btn-icon-split" data-toggle="modal" data-target="#offreModal" data-offre-id="{{ offre.id }}" title="Voir les détails de l'offre" style="margin: 3px;">
+                                            <i class="fa-sharp fa-solid fa-eye"></i>
+                                        </button> -->
+                                         <!-- Conversion Button -->
+                                        {% if perms.appels_offres.change_categorie_appeloffre %}
+                                            <button type="button" class="btn btn-info btn-icon-split" onclick="openConversionModal({{ offre.id }})" title="Changer de catégorie" style="margin: 3px;">
+                                                <i class="fa-solid fa-exchange-alt"></i>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+
+                                    {% if perms.appels_offres.fixe_appels_offres %}
+                                    <form method="post" action="{% url 'fixer_appel' offre.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        
+                                        <button type="submit"
+                                                class="btn {% if offre.si_fixe %}btn-danger{% else %}btn-warning{% endif %} btn-icon-split"
+                                                {% if offre.si_fixe %}title="D'Fixer l'offre"{% else %}title="Fixer l'offre"{% endif %}>
+                                                <i class="fa-solid fa-thumbtack"></i> 
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    <!-- Bouton Changer de catégorie -->
+                                    {% comment %} {% if perms.avis_infos.change_avisinfos or perms.offres_emploi.add_offreemploi or perms.appels_offres.add_appeloffre %}
+                                    <button type="button" 
+                                            class="btn btn-info btn-icon-split change-category-btn" 
+                                            data-offre-id="{{ offre.id }}"
+                                            title="Changer de catégorie"
+                                            style="margin: 3px;">
+                                        <i class="fa-solid fa-exchange-alt"></i>
+                                    </button>
+                                    {% endif %} {% endcomment %}
+
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <center><h1>PAS D'ACCEE </h1></center>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conversion Modal -->
+<div class="modal fade" id="conversionModalAppel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Changer de catégorie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="newTypeAppel" class="form-label">Nouveau type :</label>
+                        <select class="form-select" id="newTypeAppel">
+                            <option value="">-- Sélectionner un type --</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="performConversionAppel()">Convertir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- /.container-fluid -->
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap JS -->
+{% comment %} <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> {% endcomment %}
+
+
+<!-- Script pour gérer l'affichage des détails de l'offre dans la modale avec éditeur WYSIWYG -->
+<script>
+    
+
+
+    
+
+    $(document).ready(function() {
+        // Initialisation de DataTables
+        $('#dataTable').DataTable({
+            "order": [],
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tous"]],
+            //"pageLength": 5
+            "paging": true, // Activer la pagination
+            "searching": true, // Activer la recherche
+            "ordering": true, // Activer le tri
+            "info": true, // Afficher les informations de pagination
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json" // Traduction en français
+            },
+            "columnDefs": [
+                  // Date limite
+                { "width": "115px", "targets": 5 }   // Action
+            ],
+            "autoWidth": false,
+            "fixedColumns": true
+            //"columnDefs": [
+            //    {
+            //        "targets": 5, // Cible la 6ème colonne (index 5)
+            //        "width": "180px", // Largeur fixe de 180px
+             //       "className": "dt-nowrap" // Empêche le texte de passer à la ligne
+             //   },
+             //   {
+            //        "targets": 1, // Cible la 2ème colonne (index 1)
+             //       "width": "50px", // Largeur fixe de 50px
+             //       "className": "dt-nowrap" // Empêche le texte de passer à la ligne
+             //   }
+            //]
+        });
+    });
+    $(document).ready(function() {
+        $('#offreModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var offreId = button.data('offre-id');
+
+            $.ajax({
+                url: 'detail-appels-offre/' + offreId + '/',
+                method: 'GET',
+                success: function(data) {
+                    $('#offreModalLabel').text(data.titre);
+                    $('#modal-description').html(data.description);
+
+                    let dateLimite = new Date(data.date_limite);
+                    let options = { 
+                        weekday: 'long', 
+                        day: '2-digit', 
+                        month: 'long', 
+                        year: 'numeric'
+                    };
+                    
+                    // Add time options only if afficher_heures is true
+                    if (data.afficher_heures) {
+                        options.hour = '2-digit';
+                        options.minute = '2-digit';
+                    }
+
+                    $('#modal-date-limite').text(dateLimite.toLocaleDateString('fr-FR', options));
+                    $('#modal-lieu').text(data.lieu);
+                    
+                    var statutSpan = $('#modal-statut');
+                    if (data.si_valider) {
+                        statutSpan.text('Publiée').addClass('badge-success').removeClass('badge-danger');
+                    } else {
+                        statutSpan.text('Non Publiée').addClass('badge-danger').removeClass('badge-success');
+                    }
+
+                    var documentsHtml = '';
+                    if (data.documents && data.documents.length > 0) {
+                        data.documents.forEach(function(doc) {
+                            documentsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <a href="${doc.piece_join}" target="_blank">
+                                    <i class="fa fa-file-alt"></i> ${doc.titre_document}
+                                </a>
+                            </li>`;
+                        });
+                    } else {
+                        documentsHtml = '<li class="list-group-item">Aucun document associé.</li>';
+                    }
+                    $('#modal-documents').html(documentsHtml);
+                }
+            });
+        });
+    });
+
+   
+
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteButtons = document.querySelectorAll('button[name="action"][value="supprimer"]');
+    
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault(); // Empêche l'envoi automatique
+    
+                Swal.fire({
+                    title: "Êtes-vous sûr ?",
+                    text: "Cette action est irréversible !",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Oui, supprimer !",
+                    cancelButtonText: "Annuler",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = button.closest('form');
+                        if (form) {
+                            let hiddenInput = form.querySelector('input[name="action"]');
+                            if (!hiddenInput) {
+                                hiddenInput = document.createElement("input");
+                                hiddenInput.type = "hidden";
+                                hiddenInput.name = "action";
+                                form.appendChild(hiddenInput);
+                            }
+                            hiddenInput.value = "supprimer";
+                            form.submit(); // Soumet le formulaire avec l'action correcte
+                        }
+                    }
+                });
+            });
+        });
+    });
+    
+    // Fonctionnalité pour le bouton "Changer de catégorie"
+    {% comment %} document.addEventListener('DOMContentLoaded', function () {
+        const changeCategoryButtons = document.querySelectorAll('.change-category-btn');
+        
+        changeCategoryButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const offreId = this.getAttribute('data-offre-id');
+                openConversionModal(offreId);
+            });
+        });
+    }); {% endcomment %}
+    
+    let availableTypes = {};
+    let currentConversionId = null;
+    
+    function openConversionModal(offreId) {
+        currentConversionId = offreId;
+        fetch(`/appels_offres/convert/${offreId}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Flatten all types from all categories into a single list
+                availableTypes = {};
+                const newTypeSelect = document.getElementById('newTypeAppel');
+                newTypeSelect.innerHTML = '<option value="">-- Sélectionner un type --</option>';
+                
+                for (const [categoryId, category] of Object.entries(data.categories)) {
+                    const types = category.types;
+                    types.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type[0];
+                        option.textContent = category.name + ' - ' + type[1];
+                        newTypeSelect.appendChild(option);
+                        availableTypes[type[0]] = {category: categoryId, type: type[1]};
+                    });
+                }
+                
+                const modal = new bootstrap.Modal(document.getElementById('conversionModalAppel'));
+                modal.show();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur de réseau');
+        });
+    }
+    
+    function performConversionAppel() {
+        const newType = document.getElementById('newTypeAppel').value;
+        
+        if (!newType) {
+            alert('Veuillez sélectionner un type');
+            return;
+        }
+        
+        fetch(`/appels_offres/convert/${currentConversionId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                target_category: availableTypes[newType].category,
+                new_type: newType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur de réseau lors de la conversion');
+        });
+    }
+    
+    // Fonction pour récupérer le cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+function submitAction(action, offreId) {
+      var form = document.querySelector('form input[name="offre_id"][value="' + offreId + '"]').closest('form');
+      var actionInput = document.getElementById('action_' + offreId);
+      actionInput.value = action;
+      form.submit();
+    }
+</script>
+
+<!-- Custom CSS for category change modal -->
+<style>
+
+    
+</style>
+
+{% endblock %}

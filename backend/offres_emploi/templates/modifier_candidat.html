@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4 text-center">Modifier les informations du candidat</h2>
+
+    <!-- Affichage des messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm p-4">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Section CV -->
+            <div class="form-group">
+                <label for="{{ form.cv.id_for_label }}" class="font-weight-bold">CV :</label>
+                {% if candidat.cv %}
+                    <p><a href="{{ candidat.cv.url }}" target="_blank" class="text-primary font-weight-bold">📄 Voir le CV actuel</a></p>
+                {% endif %}
+                <div class="custom-file">
+                    {{ form.cv }}
+                    <label class="custom-file-label" for="{{ form.cv.id_for_label }}">Choisir un fichier</label>
+                </div>
+            </div>
+
+            <!-- Section Lettre de motivation -->
+            <div class="form-group mt-4">
+                <label for="{{ form.lettre_motivation.id_for_label }}" class="font-weight-bold">Lettre de motivation :</label>
+                {% if candidat.lettre_motivation %}
+                    <p><a href="{{ candidat.lettre_motivation.url }}" target="_blank" class="text-primary font-weight-bold">📄 Voir la lettre de motivation</a></p>
+                {% endif %}
+                <div class="custom-file">
+                    {{ form.lettre_motivation }}
+                    <label class="custom-file-label" for="{{ form.lettre_motivation.id_for_label }}">Choisir un fichier</label>
+                </div>
+            </div>
+
+            <!-- Boutons -->
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="{% url 'liste_utilisateurs' %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script pour mettre à jour dynamiquement le nom du fichier sélectionné -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var fileInputs = document.querySelectorAll(".custom-file-input");
+        fileInputs.forEach(function(input) {
+            input.addEventListener("change", function(event) {
+                var fileName = event.target.files[0] ? event.target.files[0].name : "Choisir un fichier";
+                var label = event.target.nextElementSibling;
+                label.innerText = fileName;
+            });
+        });
+    });
+</script>
+{% endblock %}

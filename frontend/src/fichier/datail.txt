@@ -1,0 +1,719 @@
+import React, { useEffect, useState } from "react";
+import $ from "jquery"; // Importer jQuery
+import "datatables.net-bs5"; // Importer DataTables avec Bootstrap 5
+import "datatables.net-responsive-bs5"; // Importer le plugin Responsive de DataTables
+import "datatables.net-bs5/css/dataTables.bootstrap5.min.css"; // Importer le CSS de DataTables Bootstrap 5
+import "datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css"; // Importer le CSS du plugin Responsive
+import "bootstrap/dist/css/bootstrap.min.css"; // Importer Bootstrap CSS
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesomeIcon
+import { faPlus } from '@fortawesome/free-solid-svg-icons'; // Import the specific icon (faPlus)
+
+import { Modal, Button, Form } from "react-bootstrap"; // Import React Bootstrap components
+import { Editor } from '@tinymce/tinymce-react';
+
+import axios from 'axios';
+
+
+const OffresEmploi = ({ offresEmploi , clientId }) => {
+  const [showModal, setShowModal] = useState(false); 
+  
+  const [client_id, setClientId] = useState('');
+
+
+  const [typeAnnonce, setTypeAnnonce] = useState('1');
+  const [lieu, setLieu] = useState('');
+  const [showLieuInput, setShowLieuInput] = useState(false);
+  const [titreContent, setTitreContent] = useState('');
+  const [descriptionContent, setDescriptionContent] = useState('');
+
+  
+
+
+
+
+  useEffect(() => {
+    if (offresEmploi.length > 0) {
+      const table = $("#offresEmploiTable").DataTable({
+        responsive: true, // Activer le mode responsive
+        destroy: true, // Détruire l'instance existante avant de réinitialiser
+      });
+
+      // Nettoyer DataTable lors du démontage du composant
+      return () => {
+        table.destroy();
+      };
+    }
+  }, [offresEmploi]);
+
+
+  const handleOpenFormOffreInModal = () => {
+    setShowModal(!showModal);
+  };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    const formData = {
+      titre: titreContent,
+      description: descriptionContent,
+      type_offre: typeAnnonce,
+      date_limite: new Date(document.getElementById("date_limite").value).toISOString(), // Convertir en ISO avec timezone
+      lieu: lieu,
+    };
+  
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/offres/ajouter/${client_id}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Offre ajoutée avec succès :", response.data);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout:", error);
+    }
+  };
+  
+
+
+  return (
+    <section className="container mt-4">
+      {/* En-tête avec titre et bouton */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="m-0">Offres d'emploi</h2> {/* Titre à gauche */}
+        <Button
+          variant="primary"
+          className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"  
+          style={{ width: '170px', textDecoration: 'none' }}
+          onClick={() => {
+            // Ici, nous devons spécifier quel client nous voulons associer à cette nouvelle offre
+            // Par exemple, cela pourrait être l'ID du client de la première offre (ou un autre client sélectionné)
+            setClientId(1); 
+            handleOpenFormOffreInModal(); // Ouvrir le formulaire modal
+          }}
+        >
+          <FontAwesomeIcon icon={faPlus} className="fas fa-sm text-white-50" />
+          Ajouter une offre
+        </Button>
+
+      </div>
+
+      {/* Tableau des offres d'emploi */}
+      <div className="text-center card shadow-sm" style={{ maxWidth: "100%" }}>
+        <div className="card-bod">
+          <table id="offresEmploiTable" className="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Date limite</th>
+                <th>Nom du client</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offresEmploi.map((offre) => (
+                <tr key={offre.id}>
+                  <td>{offre.titre}</td>
+                  <td>{offre.date_limite}</td>
+                  <td>{offre.client__nom}</td>
+                  <td></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal pour ajouter une nouvelle offre */}
+      <Modal show={showModal} onHide={handleOpenFormOffreInModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Nouvelle Offre</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+        <Form onSubmit={handleSubmit}>
+          <input type="hidden" name="_token" value="za8y7uqCskRLxgUgjuLj1jdcdvP2JpDm2fRLqdES" />
+          
+          <Form.Group className="mb-3">
+            <Form.Label>Titre <span className="required_field">*</span></Form.Label>
+            <Editor
+            apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+              id="titre"
+              initialValue=""
+              init={{
+                height: 400,
+                plugins: 'powerpaste advcode table lists checklist',
+                toolbar: 'insertfile a11ycheck undo redo | bold italic | forecolor backcolor | template codesample | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+              }}
+              onEditorChange={(content) => setTitreContent(content)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Type <span className="required_field">*</span></Form.Label>
+            <Form.Select 
+            id="ref_type_annonce_id"
+            className="form-control selectpicker"
+            data-live-search="true"
+            value={typeAnnonce}
+            onChange={(e) => setTypeAnnonce(e.target.value)}
+          >
+            <option value="1">Offres d'emploi</option>
+            <option value="2">Consultants</option>
+          </Form.Select>
+
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Description <span className="required_field">*</span></Form.Label>
+            <Editor
+             apiKey="klj83yy4j4btu0s11oheti6rj6kwwgj0lnbtwunqvvqeipyf"
+              id="content"
+              initialValue=""
+              init={{
+                height: 400,
+                plugins: 'powerpaste advcode table lists checklist',
+                toolbar: 'insertfile a11ycheck undo redo | bold italic | forecolor backcolor | template codesample | alignleft aligncenter alignright alignjustify | bullist numlist | link image',
+              }}
+              onEditorChange={(content) => setDescriptionContent(content)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Date limite <span className="required_field">*</span></Form.Label>
+            <Form.Control
+              type="datetime-local"
+              id="date_limite"
+              defaultValue="2025-02-28"
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Lieu <span className="required_field">*</span></Form.Label>
+            <Form.Select 
+              id="ref_lieu_id"
+              className="form-control selectpicker"
+              data-live-search="true"
+              onChange={(e) => {
+                setLieu(e.target.value);
+                setShowLieuInput(e.target.value === '14');
+              }}
+            >
+              <option value="">Sélectionner...</option>
+              {/* Options de lieu */}
+            </Form.Select>
+
+            {showLieuInput && (
+              <div className="mt-3">
+                <Form.Control
+                  id="ville"
+                  placeholder="Ville Fr"
+                  className="mb-2"
+                />
+                <Form.Control
+                  id="ville_ar"
+                  placeholder="Ville Arabe"
+                />
+              </div>
+            )}
+          </Form.Group>
+
+          <div className="text-end">
+            <Button variant="success" type="submit">
+              <i className="fas fa-save me-2"></i>
+              Ajouter
+            </Button>
+          </div>
+        </Form>
+      </Modal.Body>
+      </Modal>
+    </section>
+  );
+};
+
+export default OffresEmploi;
+
+
+
+------------------------------------
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import './ClientDashboard.css';
+import ProfileClient from "./ProfileClient";
+import OffresEmploi from "./OffresEmploi";
+import AppleOffres from "./AppleOffres";
+import Statistics from "./Statistics";
+import AvisInfos from "./AvisInfos"; // Importer le nouveau composant
+import { Navbar, Nav, Dropdown } from 'react-bootstrap';
+
+
+import { 
+  FaHome, 
+  FaTachometerAlt, 
+  FaUserCircle, 
+  FaBriefcase, 
+  FaChevronLeft, 
+  FaChevronRight 
+} from 'react-icons/fa';
+
+
+
+
+const ClientDashboard = () => {
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+
+
+  const location = useLocation();
+  const initialProfile = location.state?.profileData || {};
+  const [profile, setProfile] = useState(initialProfile);
+  const [messages, setMessages] = useState({});
+  const [activeSection, setActiveSection] = useState("statistiques");
+  const [showProfileButtons, setShowProfileButtons] = useState(false);
+
+  const [statistics, setStatistics] = useState({
+    nombreOffresEmploi: 12,
+    nombreAppleOffres: 5,
+  });
+
+  const [offresEmploi, setOffresEmploi] = useState([]);
+  const [appleOffres, setAppleOffres] = useState([]);
+  const [avisInfos, setAvisInfos] = useState([]); // État pour les avis et informations
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const domaines = ["Technologie", "Santé", "Finance", "Éducation"];
+  const typesOrganisation = ["Entreprise", "ONG", "Gouvernement", "Startup"];
+
+  const handleChange = (e) => {
+    const { name, type, files, value } = e.target;
+
+    if (type === "file") {
+      setProfile({
+        ...profile,
+        [name]: files[0],
+      });
+    } else {
+      setProfile({
+        ...profile,
+        [name]: value,
+      });
+    }
+  };
+
+  const handleSubmit = async (e, section) => {
+    e.preventDefault();
+    setMessages({ ...messages, [section]: null });
+
+    const formData = new FormData();
+    Object.entries(profile).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/client/${profile.id}/update/`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessages({ ...messages, [section]: "Mise à jour réussie!" });
+      } else {
+        setMessages({ ...messages, [section]: data.error || "Erreur lors de la mise à jour." });
+      }
+    } catch (error) {
+      setMessages({ ...messages, [section]: "Erreur de connexion au serveur." });
+    }
+  };
+
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    if (section !== "info" && section !== "contact" && section !== "compte") {
+      setShowProfileButtons(false);
+    }
+  };
+
+  useEffect(() => {
+    // Récupérer les offres d'emploi pour ce client
+    const fetchOffresEmploi = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/client/${profile.id}/offres-emploi/`);
+        const data = await response.json();
+        if (response.ok) {
+          setOffresEmploi(data);
+        } else {
+          console.error("Erreur lors de la récupération des offres d'emploi");
+        }
+      } catch (error) {
+        console.error("Erreur de connexion au serveur", error);
+      }
+    };
+
+    if (profile.id) {
+      fetchOffresEmploi();
+    }
+  }, [profile.id]);
+
+  useEffect(() => {
+    // Récupérer les offres Apple
+    const fetchAppleOffres = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/appels_offres/api/client/${profile.id}/`);
+        const data = await response.json();
+        if (response.ok) {
+          setAppleOffres(data);
+        } else {
+          setError("Erreur lors de la récupération des offres Apple");
+        }
+      } catch (error) {
+        setError("Erreur de connexion au serveur");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppleOffres();
+  }, [profile.id]);
+
+  useEffect(() => {
+    // Récupérer les avis et informations
+    const fetchAvisInfos = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/avis_infos/api/client/${profile.id}/`);
+        const data = await response.json();
+        if (response.ok) {
+          setAvisInfos(data);
+        } else {
+          setError("Erreur lors de la récupération des avis et informations");
+        }
+      } catch (error) {
+        setError("Erreur de connexion au serveur");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAvisInfos();
+  }, [profile.id]);
+
+  return (
+    <div className="dashboard">
+       <header className="header">
+      <div className="header-content">
+        <div className="logo">
+        <span className="client-name" style={{marginRight:"5px"}}>nom client</span>
+        <i className="fa fa-user-circle"></i>
+         
+
+        </div>
+      </div>
+    </header>
+       
+ 
+
+
+<ul 
+      className={`navbar-nav bg-info sidebar sidebar-dark accordion ${isCollapsed ? 'collapsed' : ''}`}
+      id="mainMenu"
+    >
+      {/* Brand Section */}
+      <a 
+        className="sidebar-brand d-flex align-items-center justify-content-center" 
+        href="https://beta.mr"
+      >
+        <div className="sidebar-brand-icon">
+          <FaHome className="fa-lg" />
+        </div>
+        <div className="sidebar-brand-text mx-3">BETA</div>
+      </a>
+      <hr className="sidebar-divider my-0" />
+
+      {/* Menu Items */}
+      <li className="nav-item active">
+        <a className="nav-link" href="https://beta.mr/dashboard">
+          <FaTachometerAlt />
+          <span>Tableau de bord</span>
+        </a>
+      </li>
+      <hr className="sidebar-divider m-0" />
+
+      <li className="nav-item">
+        <a className="nav-link text-white" href="https://beta.mr/beta/employeurs/get_fiche">
+          <FaUserCircle />
+          <span>Mon profil</span>
+        </a>
+      </li>
+      <hr className="sidebar-divider m-0" />
+
+      <li className="nav-item">
+        <a className="nav-link text-white" href="https://beta.mr/offres">
+          <FaBriefcase />
+          <span>Offres d'emploi</span>
+        </a>
+      </li>
+
+      <li className="nav-item">
+        <a className="nav-link" href="https://beta.mr/appels">
+          <FaBriefcase />
+          <span>Appels d'Offres</span>
+        </a>
+      </li>
+
+      <li className="nav-item">
+        <a className="nav-link" href="https://beta.mr/avis">
+          <FaBriefcase />
+          <span>Avis & infos</span>
+        </a>
+      </li>
+
+      {/* Toggle Button */}
+      <hr className="sidebar-divider d-none d-md-block" />
+      <div className="text-center d-none d-md-inline">
+        <button 
+          className="rounded-circle border-0" 
+          id="sidebarToggle"
+          onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
+        >
+          {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+        </button>
+      </div>
+      </ul> 
+
+      <main className="main-content">
+        {showProfileButtons && (
+          <div className="profile-buttons">
+            <button
+              className={`tab-button ${activeSection === "info" ? "active" : ""}`}
+              onClick={() => handleSectionChange("info")}
+            >
+              Informations Générales
+            </button>
+            <button
+              className={`tab-button ${activeSection === "contact" ? "active" : ""}`}
+              onClick={() => handleSectionChange("contact")}
+            >
+              Contact & Responsable
+            </button>
+            <button
+              className={`tab-button ${activeSection === "compte" ? "active" : ""}`}
+              onClick={() => handleSectionChange("compte")}
+            >
+              Gestion de Compte
+            </button>
+          </div>
+        )}
+
+        {activeSection === "statistiques" && <Statistics statistics={statistics} />}
+        {activeSection === "info" && (
+          <ProfileClient
+            profile={profile}
+            handleChange={handleChange}
+            handleSubmit={handleSubmit}
+            messages={messages}
+            domaines={domaines}
+            typesOrganisation={typesOrganisation}
+            activeSection="info"
+          />
+        )}
+
+        {activeSection === "contact" && (
+          <ProfileClient
+            profile={profile}
+            handleChange={handleChange}
+            handleSubmit={handleSubmit}
+            messages={messages}
+            domaines={domaines}
+            typesOrganisation={typesOrganisation}
+            activeSection="contact"
+          />
+        )}
+
+        {activeSection === "compte" && (
+          <ProfileClient
+            profile={profile}
+            handleChange={handleChange}
+            handleSubmit={handleSubmit}
+            messages={messages}
+            domaines={domaines}
+            typesOrganisation={typesOrganisation}
+            activeSection="compte"
+          />
+        )}
+        {/* {activeSection === "offres" && <OffresEmploi offresEmploi={offresEmploi} />} */}
+
+        {activeSection === "offres" && <OffresEmploi offresEmploi={offresEmploi} clientId={profile.id} />}
+
+        {activeSection === "apple-offres" && (
+          <>
+            {loading && <p>Chargement des offres Apple...</p>}
+            {error && <p>{error}</p>}
+            <AppleOffres appleOffres={appleOffres}  clientId={profile.id}/>
+          </>
+        )}
+        {activeSection === "avis_infos" && (
+          <>
+            {loading && <p>Chargement des avis et informations...</p>}
+            {error && <p>{error}</p>}
+            <AvisInfos avisInfos={avisInfos}   clientId={profile.id} />
+          </>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default ClientDashboard;
+----------------------
+  {/* Modal de détail */}
+          <Modal show={showDetailModal} onHide={handleCloseDetailModal} size="xl">
+        <Modal.Header closeButton>
+        {/* <Modal.Title>Détails de l'offre : {selectedOffre?.titre}</Modal.Title> */}
+        <Modal.Title>
+  Détails de l'offre : {selectedOffre?.titre.replace(/<\/?[^>]+(>|$)/g, "")}
+</Modal.Title>
+
+
+        </Modal.Header>
+        <Modal.Body>
+        {selectedOffre && (
+          <div className="col-md-12">
+            <style>{`
+              table { width: 100% !important; }
+              #divText img { max-width: 100% !important; }
+              body { font-size: 14px !important; }
+            `}</style>
+
+              <div className="container bg-white">
+                <div className="row">
+                    <div className="col-md-12">
+                        <div className="card p-2 mt-2 mb-2" style={{ maxWidth: '100%' }}>
+                            <div className="row">
+                                <div className="col-md-2">
+                                    <div className="text-center">
+                                        <img width="120px" src={selectedOffre.client__logo} alt="Company Logo" />
+                                    </div>
+                                </div>
+                                <div className="col-md-10 align-self-center">
+                                    <span className="font-weight-bold" style={{ fontSize: '14px' }}>{selectedOffre.client__nom}</span><br />
+                                    <span className="text-beta font-weight-bold" style={{ fontSize: '14px', color: '#0C96B1' }} dangerouslySetInnerHTML={{ __html: selectedOffre.titre }}></span>
+                                    <div className="row">
+                                        <div className="col-lg-6">
+                                            <b>Date limite : <span className="text-danger" > {new Date(selectedOffre.date_limite).toLocaleDateString()}</span></b>
+                                        </div>
+                                        <div className="col-lg-6 text-end" >
+                                            <b>Lieu : <span className="text-danger" style={{ marginRight: '15px' }}> {selectedOffre.lieu}</span></b>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <br/> <br/> <br/>
+                            <div className="row" id="divText">
+                            
+                            <div className="col-lg-12">
+                                            {/* Afficher la description de l'offre */}
+                                            <p dangerouslySetInnerHTML={{ __html: selectedOffre.description }} style={{ textDecoration: 'none' }} />
+                                        </div>
+
+                                        {/* Vérifier si des documents existent */}
+                                        {selectedOffre.documents && selectedOffre.documents.length > 0 ? (
+                                            <div className="col-lg-12">
+                                                <br /><br />
+                                                <span className="titreDocument">Pour plus d'informations, consultez le lien ci-après :</span>
+                                                <br /><br />
+                                                {selectedOffre.documents.map((document, index) => (
+                                                    <a
+                                                        key={index}
+                                                        className="titreDoc"
+                                                        href={document.piece_join} 
+                                                        target="_blank"
+                                                        rel="noopener noreferrer" style={{ textDecoration: 'none' }}
+                                                    >
+                                                        <img
+                                                            width="30px"
+                                                            src="https://beta.mr/img/pdf.png"
+                                                            alt="PDF Icon"
+                                                        />
+                                                       <span>{document.titre_document}</span>
+                                                    </a>
+                                                ))}
+                                                <br />
+                                            </div>
+                                        ) : (
+                                           
+                                            null
+                                        )}
+
+
+
+                            </div>
+                            <div className="card-footer mt-5">
+                            <div className="row">
+                                <div className="col-6">
+                                    <b>Offre en ligne depuis : </b> <span style={{color: 'red'}}>12 février 2025</span>
+                                </div>
+                                <div className="col-6 text-end">
+                                    <b><i className="fa fa-share"></i> Partager cette offre</b>
+                                    <a className="" target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/sharer/sharer.php?u=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145">
+                                        <i className="fab fa-facebook fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                    <a className="mx-2" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145">
+                                        <i className="fab fa-linkedin fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                    <a className="" target="_blank" rel="noopener noreferrer" href="whatsapp://send?text=https://beta.mr/beta/offre/un-directeur-des-finances-et-administration/8145">
+                                        <i className="fab fa-whatsapp text-success fa-lg" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                                <div className="btn-group" role="group" aria-label="Basic example">
+                                <a
+                                            className="mr-3 btn btn-sm shadow-sm mb-1" // Suppression de btn-primary car nous définissons une couleur personnalisée
+                                            href="/listcompter_appeloffre"
+                                            style={{
+                                                textDecoration: 'none', // Ajout de text-decoration: none
+                                                backgroundColor: '#4E73DF', // Ajout de la couleur de fond
+                                                width: '250px', // Réduction de la largeur (ajustez la valeur selon vos besoins)
+                                            }}
+                                        >
+                                            Voir la liste complète
+                                        </a>
+                                    <a
+                                        className="btn btn-sm btn-primary shadow-sm mb-1" 
+                                        href={`/annonces_appleoffre/${selectedOffre.client__nom}`}  style={{
+                                            textDecoration: 'none', // Ajout de text-decoration: none
+                                            backgroundColor: '#4E73DF', // Ajout de la couleur de fond
+                                            
+                                        }}
+                                    >
+                                        Voir toutes les annonces :
+                                        <span style={{ color: 'black', fontWeight: 'bold' }}> {selectedOffre.client__nom}</span>
+                                    </a>
+                                </div>
+                            </div>
+                          
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div> )}
+        </Modal.Body>
+      </Modal>

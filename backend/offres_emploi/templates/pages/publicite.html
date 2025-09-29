@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <center><h1>Liste des Publicités</h1></center>
+        {% if perms.offres_emploi.add_publicite %}
+            <a href="{% url 'creer_publicite' %}">
+                <button type="button" class="btn btn-primary">Créer une publicité</button>
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Libellé</th>
+                            <th>Client</th>
+                            <th>Type de Publicité</th>
+                            <th>Type de Contenu</th>
+                            <th>Date Limite</th>
+                            <th>Contenu</th>
+                            {% comment %} <th>Action</th> {% endcomment %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for publicite in publicites %}
+                        <tr>
+                            <td>{{ publicite.libelle }}</td>
+                            <td>{{ publicite.client.libelle_fr|default:"Aucun client" }}</td>
+                            <td>{{ publicite.get_type_publicite_display }}</td>
+                            <td>{{ publicite.get_type_contenu_display }}</td>
+                            <td>{{ publicite.date_limite }}</td>
+                            <td>
+                                {% if publicite.type_contenu == 'LIEN' and publicite.lien %}
+                                    <a href="{{ publicite.lien }}" target="_blank">
+                                        <i class="fa-solid fa-file"></i>
+                                    </a>
+                                {% elif publicite.type_contenu == 'DOCUMENT' and publicite.fichier %}
+                                    {% if perms.offres_emploi.view_publicite %}
+                                        <a href="{{ publicite.fichier.url }}" target="_blank">
+                                            <i class="fa-solid fa-file"></i>
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    Aucun contenu
+                                {% endif %}
+                                {% if perms.offres_emploi.change_publicite %}
+                                    <a href="{% url 'modifier_publicite' publicite.id %}" class="btn btn-warning btn-sm">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                {% comment %} 
+                                [[]]
+                                {% if perms.offres_emploi.delete_publicite %}
+                                     <a href="{% url 'supprimer_publicite' publicite.id %}" class="btn btn-danger btn-sm">
+                                        <i class="fa fa-trash"></i> Supprimer
+                                    </a> 
+                                {% endif %}
+                            </td> {% endcomment %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery et Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
+            }
+        });
+    });
+</script>
+{% endblock %}

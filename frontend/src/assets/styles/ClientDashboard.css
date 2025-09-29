@@ -1,0 +1,194 @@
+/* Reset CSS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+/* Dashboard Layout */
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 24px;
+  color: #333;
+}
+
+.logo img {
+  height: 40px;
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: #4e73df;
+  width: 250px;
+  padding: 20px;
+  position: fixed;
+  top: 80px; /* Adjust based on header height */
+  bottom: 0;
+  overflow-y: auto;
+}
+
+.sidebar nav ul {
+  list-style: none;
+}
+
+.sidebar nav ul li {
+  margin-bottom: 15px;
+}
+
+.sidebar-button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.sidebar-button:hover {
+  background-color: #4e73df;
+}
+
+.sidebar-button.active {
+  background-color: #4e73df;
+  font-weight: bold;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 250px; /* Same as sidebar width */
+  margin-top: 80px; /* Same as header height */
+  padding: 20px;
+  flex-grow: 1;
+}
+
+/* Form Section */
+.form-section {
+  background-color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-section h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Input Field */
+.input-field {
+  margin-bottom: 15px;
+}
+
+.input-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.input-field input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Buttons */
+.submit-button {
+  background-color: #4e73df;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.submit-button:hover {
+  background-color: #4e73df;
+}
+
+/* Messages */
+.error {
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
+.success {
+  color: #4e73df;
+  margin-bottom: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    position: static;
+    margin-top: 80px;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+/* Styles pour les onglets dans la partie principale */
+.client-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+.tab-button:hover {
+  background-color: #4e73df;
+  color: #fff;
+}
+
+.tab-button.active {
+  background-color: #4e73df;
+  color: #fff;
+  font-weight: bold;
+}
