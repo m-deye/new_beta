@@ -59,7 +59,7 @@ urlpatterns = [
        path('api/offres/detail/<int:offre_id>/', views.detail_offre_api, name='get_publicites'),
       #  path('api/offres/detail/<int:offre_id>/', views.detail_offre_api, name='get_publicites'),
        path('annonces_parclient/', views.liste_annoces_cleint, name='liste_annoces_cleint'), 
-       path('offres/ajouter/<int:id>/', views.ajouter_offre, name='ajouter_offre'),
+  
 
   path('api/login/', views.login_view, name='api-login'),
 

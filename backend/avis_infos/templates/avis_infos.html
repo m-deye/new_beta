@@ -77,9 +77,9 @@
                                 <td>{{ avis.nombre_vu }}</td>
                                 <td>
                                     {% if avis.si_valider %}
-                                        Validé
+                                        Publié
                                     {% else %}
-                                        Non Validé
+                                        Non Publié
                                     {% endif %}
                                 </td>
                                 <td>
@@ -130,30 +130,30 @@
                                             </button>
                                         {% endif %}
                                         
-                                        <!-- Bouton Valider/Invalider -->
+                                        <!-- Bouton Publié/Depublié -->
                                 {% if perms.avis_infos.valider_avisinfos  %}
                                     {% if perms.avis_infos.valider_ar_avisinfos  %}
                                         
                                         <div class="dropdown" style="display:inline-block; margin: 3px;">
-                                        <button class="btn btn-primary btn-icon-split dropdown-toggle" type="button" id="dropdownMenuButton_{{ avis.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Valider ou invalider l'avis" aria-label="Menu pour valider ou invalider l'avis">
+                                        <button class="btn btn-primary btn-icon-split dropdown-toggle" type="button" id="dropdownMenuButton_{{ avis.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Publié ou depublié l'avis" aria-label="Menu pour publié ou depublié l'avis">
                                             <i class="fa-solid fa-badge-check"></i>
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton_{{ avis.id }}">
                                             {% if not avis.si_valider %}
-                                            <a class="dropdown-item" href="#" onclick="submitAction('valider_fr', {{ avis.id }})">Valider FR</a>
+                                            <a class="dropdown-item" href="#" onclick="submitAction('valider_fr', {{ avis.id }})">Publié FR</a>
                                             {% else %}
-                                            <a class="dropdown-item" href="#" onclick="submitAction('invalider_fr', {{ avis.id }})">Invalider FR</a>
+                                            <a class="dropdown-item" href="#" onclick="submitAction('invalider_fr', {{ avis.id }})">Depublié FR</a>
                                             {% endif %}
                                             {% if not avis.si_valider_ar %}
-                                            <a class="dropdown-item" href="#" onclick="submitAction('valider_ar', {{ avis.id }})">Valider AR</a>
+                                            <a class="dropdown-item" href="#" onclick="submitAction('valider_ar', {{ avis.id }})">Publié AR</a>
                                             {% else %}
-                                            <a class="dropdown-item" href="#" onclick="submitAction('invalider_ar', {{ avis.id }})">Invalider AR</a>
+                                            <a class="dropdown-item" href="#" onclick="submitAction('invalider_ar', {{ avis.id }})">Depublié AR</a>
                                             {% endif %}
 
                                             {% if not avis.a_traduire %}
-                                                <a class="dropdown-item" href="#" onclick="submitAction('Valide_a_traduire', {{ avis.id }})">Valide l'accès AR</a>
+                                                <a class="dropdown-item" href="#" onclick="submitAction('Valide_a_traduire', {{ avis.id }})">Validé l'accès AR</a>
                                             {% else %}
-                                                <a class="dropdown-item" href="#" onclick="submitAction('Invalider_a_traduire', {{ avis.id }})">Invalider l'accès AR</a>
+                                                <a class="dropdown-item" href="#" onclick="submitAction('Invalider_a_traduire', {{ avis.id }})">Devalidé l'accès AR</a>
                                             {% endif %}
                                         </div>
                                         </div>
@@ -164,14 +164,14 @@
                                             <button class="btn btn-danger btn-icon-split" 
                                             onclick="submitAction('invalider_fr', {{ avis.id }})"
                                             type="submit" name="action" value="invalider_fr" 
-                                            title="Dévalider l'avis FR" style="margin: 3px;">
+                                            title="Depublié l'avis FR" style="margin: 3px;">
                                                 <i class="fa-solid fa-badge-check"></i>
                                             </button>
                                         {% else %}
                                             <button class="btn btn-success btn-icon-split"
                                             onclick="submitAction('valider_fr', {{ avis.id }})"
                                             type="submit" name="action" value="valider_fr" 
-                                            title="Valider l'avis FR" style="margin: 3px;">
+                                            title="Publié l'avis FR" style="margin: 3px;">
                                                 <i class="fa-solid fa-badge-check"></i>
                                             </button>
                                         {% endif %}
@@ -181,14 +181,14 @@
                                         <button class="btn btn-danger btn-icon-split" 
                                         onclick="submitAction('invalider_ar', {{ avis.id }})"
                                         type="submit" name="action" value="invalider_ar" 
-                                        title="Dévalider l'avis AR" style="margin: 3px;">
+                                        title="Depublié l'avis AR" style="margin: 3px;">
                                             <i class="fa-solid fa-badge-check"></i>
                                         </button>
                                     {% else %}
                                         <button class="btn btn-success btn-icon-split"
                                         onclick="submitAction('valider_ar', {{ avis.id }})"
                                          type="submit" name="action" value="valider_ar" 
-                                         title="Valider l'avis AR" style="margin: 3px;">
+                                         title="Publié l'avis AR" style="margin: 3px;">
                                             <i class="fa-solid fa-badge-check"></i>
                                         </button>
                                     {% endif %} 
@@ -208,7 +208,7 @@
                                         
                                         <!-- Conversion Button -->
                                          {% if perms.avis_infos.change_categorie_appeloffre %}
-                                            <button type="button" class="btn btn-info btn-icon-split" onclick="openConversionModal({{ avis.id }})" title="Changer de catégorie" style="margin: 3px;">
+                                            <button type="button" class="btn btn-info btn-icon-split" onclick="openConversionModal({{ avis.id }})" title="Changé catégorie" style="margin: 3px;">
                                                 <i class="fa-solid fa-exchange-alt"></i>
                                             </button> 
                                         {% endif %}

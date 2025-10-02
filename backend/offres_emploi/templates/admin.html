@@ -98,9 +98,9 @@
                     <td>{{ offre.nombre_vu }}</td>
                     <td>
                       {% if offre.si_valider %}
-                        Validé
+                        Publié
                       {% else %}
-                        Non Validé
+                        Non Publié
                       {% endif %}
                     </td>
                     <td>
@@ -158,40 +158,46 @@
                             <i class="fa-solid fa-pen-to-square"></i>
                           </button>
                         {% endif %}
-                        <!-- Bouton Valider/Invalider -->
+                        <!-- Bouton Publié/Depublié -->
                           {% if perms.offres_emploi.valider_offreemploi  %}
                             {% if perms.offres_emploi.valider_ar_offreemploi  %}
                               <div class="dropdown" style="display:inline-block; margin: 3px;">
-                                <button class="btn btn-primary btn-icon-split dropdown-toggle" type="button" id="dropdownMenuButton_{{ offre.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Valider ou invalider l'offre">
+                                <button class="btn btn-primary btn-icon-split dropdown-toggle" type="button" id="dropdownMenuButton_{{ offre.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Publié ou depublié l'offre">
                                 <i class="fa-solid fa-badge-check"></i>
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton_{{ offre.id }}">
                                   {% if not offre.si_valider %}
-                                    <a class="dropdown-item" href="#" onclick="submitAction('valider_fr', {{ offre.id }})">Valider FR</a>
+                                    <a class="dropdown-item" href="#" onclick="submitAction('valider_fr', {{ offre.id }})">Publié FR</a>
                                   {% else %}
-                                    <a class="dropdown-item" href="#" onclick="submitAction('invalider_fr', {{ offre.id }})">Invalider FR</a>
+                                    <a class="dropdown-item" href="#" onclick="submitAction('invalider_fr', {{ offre.id }})">Depublié FR</a>
                                   {% endif %}
                                   {% if not offre.si_valider_ar %}
-                                    <a class="dropdown-item" href="#" onclick="submitAction('valider_ar', {{ offre.id }})">Valider AR</a>
+                                    <a class="dropdown-item" href="#" onclick="submitAction('valider_ar', {{ offre.id }})">Publié AR</a>
                                   {% else %}
-                                    <a class="dropdown-item" href="#" onclick="submitAction('invalider_ar', {{ offre.id }})">Invalider AR</a>
+                                    <a class="dropdown-item" href="#" onclick="submitAction('invalider_ar', {{ offre.id }})">Depublié AR</a>
                                   {% endif %}
 
                                   {% if not offre.a_traduire %}
-                                      <a class="dropdown-item" href="#" onclick="submitAction('Valide_a_traduire', {{ offre.id }})">Valide l'accès AR</a>
+                                      <a class="dropdown-item" href="#" onclick="submitAction('Valide_a_traduire', {{ offre.id }})">Publié l'accès AR</a>
                                   {% else %}
-                                      <a class="dropdown-item" href="#" onclick="submitAction('Invalider_a_traduire', {{ offre.id }})">Invalider l'accès AR</a>
+                                      <a class="dropdown-item" href="#" onclick="submitAction('Invalider_a_traduire', {{ offre.id }})">Devalidé l'accès AR</a>
                                   {% endif %}
                                 </div>
                               </div>
                               <input type="hidden" name="action" id="action_{{ offre.id }}">
                             {% else %}
                               {% if offre.si_valider %}
-                                <button class="btn btn-danger btn-icon-split" type="submit" name="action" value="invalider" title="Dévalider l'offre FR" style="margin: 3px;">
+                                <button class="btn btn-danger btn-icon-split" 
+                                onclick="submitAction('invalider_fr', {{ offre.id }})"
+                                type="submit" name="action" value="invalider" 
+                                title="Depublié l'offre FR" style="margin: 3px;">
                                   <i class="fa-solid fa-badge-check"></i>
                                 </button>
                               {% else %}
-                                <button class="btn btn-success btn-icon-split" type="submit" name="action" value="valider" title="Valider l'offre FR" style="margin: 3px;">
+                                <button class="btn btn-success btn-icon-split" 
+                                onclick="submitAction('valider_fr', {{ offre.id }})"
+                                type="submit" name="action" value="valider" 
+                                title="Publié l'offre FR" style="margin: 3px;">
                                   <i class="fa-solid fa-badge-check"></i>
                                 </button>
                               {% endif %}
@@ -201,14 +207,14 @@
                               <button class="btn btn-danger btn-icon-split"
                               onclick="submitAction('invalider_ar', {{ offre.id }})"
                               type="submit" name="action" value="invalider_ar" 
-                              title="Dévalider l'offre AR" style="margin: 3px;">
+                              title="Depublié l'offre AR" style="margin: 3px;">
                                 <i class="fa-solid fa-badge-check"></i>
                               </button>
                             {% else %}
                               <button class="btn btn-success btn-icon-split"
                               \onclick="submitAction('valider_ar', {{ offre.id }})"
                                type="submit" name="action" value="valider_ar" 
-                               title="Valider l'offre AR" style="margin: 3px;">
+                               title="Publié l'offre AR" style="margin: 3px;">
                                 <i class="fa-solid fa-badge-check"></i>
                               </button>
                             {% endif %} 
@@ -228,7 +234,7 @@
                         
                         <!-- Conversion Button -->
                          {% if perms.appels_offres.change_categorie_offreemploi %}
-                          <button type="button" class="btn btn-info btn-icon-split" onclick="openConversionModal({{ offre.id }})" title="Changer de catégorie" style="margin: 3px;">
+                          <button type="button" class="btn btn-info btn-icon-split" onclick="openConversionModal({{ offre.id }})" title="Changé catégorie" style="margin: 3px;">
                               <i class="fa-solid fa-exchange-alt"></i>
                           </button>
                         {% endif %}

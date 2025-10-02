@@ -218,7 +218,7 @@ class Document(models.Model):
         ('fr', 'Français'),
     ]
     langue = models.CharField(choices=DOCUMENT_LANG, default='fr', max_length=100)
-    titre_document = models.CharField(max_length=100)
+    titre_document = models.CharField(max_length=100,null=True,blank=True)
     titre_piece_join = models.CharField(max_length=100)
     piece_join = models.FileField(upload_to='pieces_jointes/offres_emploi')
     offre_emploi = models.ForeignKey(OffreEmploi, on_delete=models.CASCADE, related_name='documents')

@@ -913,9 +913,7 @@ def admin_offres(request):
             nombre_offres_publiees=Count('client__offres_emploi', filter=Q(client__offres_emploi__si_valider=True))
         ).filter(a_traduire=True).order_by('-date_creation')
     else:
-        offres = OffreEmploi.objects.filter(
-        si_archiver=False
-        ).annotate(
+        offres = OffreEmploi.objects.annotate(
             nombre_offres_publiees=Count('client__offres_emploi', filter=Q(client__offres_emploi__si_valider=True))
         ).order_by('-date_creation')
         
@@ -2214,7 +2212,7 @@ def ajouter_offre(request, id):
                 si_national=data['si_national']
 
             )
-
+            print("-------------",offre.id)
             return JsonResponse({"message": "Offre ajoutée avec succès", "offre_id": offre.id}, status=201)
         except Client.DoesNotExist:
             return JsonResponse({"error": "Client non trouvé"}, status=404)
@@ -2305,13 +2303,41 @@ def ajouter_document(request, offre_emploi_id):
         titre_document = request.POST.get('titre_document')
         piece_join = request.FILES.get('piece_join')
 
-        document = Document(
-            titre_document=titre_document,
-            piece_join=piece_join,
-            offre_emploi=offre_emploi 
-        )
-        document.save()
-        return JsonResponse({'success': 'Document ajouté avec succès'}, status=200)
+        if not titre_document:
+            return JsonResponse({'error': "Le champ 'titre_document' est requis"}, status=400)
+
+        # Normaliser la langue reçue depuis le front
+        langue_label = (request.POST.get('langue') or '').strip()
+        langue_map = {
+            'Français': 'fr',
+            'Francais': 'fr',
+            'fr': 'fr',
+            'FR': 'fr',
+            'Arabe': 'ar',
+            'ar': 'ar',
+            'AR': 'ar',
+            # Valeur non supportée (ex: Anglais) => fallback sur 'fr'
+        }
+        langue_code = langue_map.get(langue_label, 'fr')
+
+        # Remplir le champ obligatoire titre_piece_join si non fourni
+        titre_piece_join = request.POST.get('titre_piece_join')
+        if not titre_piece_join:
+            # Par défaut: reprendre le libellé ou le nom du fichier
+            titre_piece_join = titre_document or getattr(piece_join, 'name', 'document')
+
+        try:
+            document = Document(
+                langue=langue_code,
+                titre_document=titre_document,
+                titre_piece_join=titre_piece_join,
+                piece_join=piece_join,
+                offre_emploi=offre_emploi
+            )
+            document.save()
+            return JsonResponse({'success': 'Document ajouté avec succès', 'document_id': document.id}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': f"Échec lors de l'ajout du document: {str(e)}"}, status=500)
     
     return JsonResponse({'error': 'Requête invalide ou fichier manquant'}, status=400)  # Bad request
 

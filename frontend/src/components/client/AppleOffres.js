@@ -964,10 +964,12 @@ const AppleOffres = ({ appleOffres = [], clientId }) => {
         `/appels_offres/offres/ajouter/${clientId}/`,
         formData
       );
+      const offreId = response.data.offre_id;
       setMessage("Appel d'offre ajouté avec succès !");
       setTimeout(() => setMessage(""), 20000);
       handleCloseAddModal();
-      handleOpenDetailModal(formData);
+   
+      handleOpenDetailModal({ ...formData, id: offreId });
     } catch (error) {
       setMessage("Échec de l'ajout de l'appel d'offre.");
       setTimeout(() => setMessage(""), 20000);

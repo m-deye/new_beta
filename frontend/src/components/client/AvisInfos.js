@@ -920,10 +920,13 @@ const AvisInfos = ({ avisInfos = [], clientId }) => {
         `/avis_infos/offres/ajouter/${clientId}/`,
         formData
       );
+      const offreId = response.data.offre_id;
+      console.log(offreId )
       setMessage("Avis ajouté avec succès !");
       setTimeout(() => setMessage(""), 20000);
       handleCloseAddModal();
-      handleOpenDetailModal(formData);
+      handleOpenDetailModal({ ...formData, id: offreId });
+      
     } catch (error) {
       setMessage("Échec de l'ajout de l'avis.");
       setTimeout(() => setMessage(""), 20000);

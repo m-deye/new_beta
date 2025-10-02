@@ -121,8 +121,9 @@ const JobOfferModal = ({ show, handleClose, offre }) => {
   }, [offre]);
 
   const handleDocumentSubmit = async (e) => {
+    console.log(e);
     e.preventDefault();
-
+    console.log(e);
     if (!selfile || !seltitre_document || !sellangue) {
       console.error("Tous les champs sont requis !");
       return;
@@ -1015,11 +1016,11 @@ const OffresEmploi = ({ offresEmploi = [], clientId }) => {
         `/offres/ajouter/${clientId}/`,
         formData
       );
-
+      const offreId = response.data.offre_id;
       setMessage("Offre emplois ajoutée avec succès !");
       setTimeout(() => setMessage(""), 20000);
       handleCloseAddModal();
-      handleOpenDetailModal(formData);
+      handleOpenDetailModal({ ...formData, id: offreId });
     } catch (error) {
       setMessage("Échec de l'ajout d'offre emplois.");
       setTimeout(() => setMessage(""), 20000);
