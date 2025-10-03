@@ -47,7 +47,7 @@ const formatDateLimite = (dateLimite) => {
 };
 
 // Composant réutilisable pour une carte d'appel d'offres
-const OffreCard = ({ logo, entreprise, titre, date, type, id }) => {
+const OffreCard = ({ logo, entreprise, titre, date, type, id,  isRTL}) => {
   return (
     <div
       className="col-sm-12 col-sm-1 col-md-6"
@@ -55,7 +55,12 @@ const OffreCard = ({ logo, entreprise, titre, date, type, id }) => {
     >
       <div className="card post-card pb-1" style={{ height: "100%" }}>
         <div className="card-bod card-bod1" style={{ padding: "2px" }}>
-          <div className="card-badge">{type}</div>
+          {/* <div className="card-badge">{type}</div> */}
+          <div className="card-badge"
+            style={isRTL ? { left: 0, right: 'auto' } : undefined}
+          >
+            {type}
+            </div>
           <div className="col-md-12">
             <div className="row pl-0">
               <div className="col-sm-2 pr-0 pl-0">
@@ -136,6 +141,7 @@ const Avis_Infos = () => {
                   date={formatDateLimite(offre.date_limite)} // Formater la date ici
                   type={t("avis_infos")}
                   id={offre.id}
+                  isRTL={isRTL}
                 />
               ))}
             </div>

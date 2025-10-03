@@ -141,7 +141,6 @@ class OffreEmploi(models.Model):
     si_traduire = models.BooleanField(default=False)
     acee_traduction = models.BooleanField(default=False)
     titre_entreprise = models.CharField(max_length=100,null=True,blank=True)
-    titre_entreprise_ar = models.CharField(max_length=100,null=True,blank=True)
     categorie = models.CharField(choices=CATEGORIE_CHOICES, default='standard', max_length=100)
     groupement_spacial = models.CharField(choices=GROUPEMENT_SPACIAL_CHOICES, default='non', max_length=100)
     titre_groupement_cpacial = models.CharField(max_length=100,null=True,blank=True)
@@ -218,7 +217,7 @@ class Document(models.Model):
         ('fr', 'Français'),
     ]
     langue = models.CharField(choices=DOCUMENT_LANG, default='fr', max_length=100)
-    titre_document = models.CharField(max_length=100,null=True,blank=True)
+    titre_document = models.CharField(max_length=100)
     titre_piece_join = models.CharField(max_length=100)
     piece_join = models.FileField(upload_to='pieces_jointes/offres_emploi')
     offre_emploi = models.ForeignKey(OffreEmploi, on_delete=models.CASCADE, related_name='documents')

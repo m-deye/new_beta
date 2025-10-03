@@ -32,7 +32,7 @@ const splitDateTime = (dateLimite) => {
   return { date: `${daysStr} ${monthsStr} ${year}`, time: timeStr };
 };
 
-const OffreCard = ({ logo, entreprise, titre, date, time, type, id, lieu, groupement_spacial, titre_groupement_cpacial }) => {
+const OffreCard = ({ logo, entreprise, titre, date, time, type, id, lieu, groupement_spacial, titre_groupement_cpacial, isRTL}) => {
   const { t } = useTranslation();
   return (
     <div
@@ -41,7 +41,9 @@ const OffreCard = ({ logo, entreprise, titre, date, time, type, id, lieu, groupe
     >
       <div className="card post-card pb-1" style={{ height: "100%" }}>
         <div className="card-bod card-bod1" style={{ padding: "2px" }}>
-          <div className="card-badge">
+          <div className="card-badge"
+            style={isRTL ? { left: 0, right: 'auto' } : undefined}
+          >
             {type === "OFFRE_EMPLOI" ? t("offres_emploi") : t("consultants")}
           </div>
           <div className="col-md-12">
@@ -152,6 +154,7 @@ const OffresEmplois = () => {
                       lieu={offre.lieu}
                       groupement_spacial={offre.groupement_spacial}
                       titre_groupement_cpacial={offre.titre_groupement_cpacial}
+                      isRTL={isRTL}
                     />
                   );
 
@@ -172,6 +175,7 @@ const OffresEmplois = () => {
                           lieu={li.lieu}
                           groupement_spacial={"non"}
                           titre_groupement_cpacial={null}
+                          isRTL={isRTL}
                         />
                       );
                     });

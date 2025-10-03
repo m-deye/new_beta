@@ -112,16 +112,20 @@ const DetailAvisInfo = () => {
                 </div>
 
                 {/* Vérifier si des documents existent */}
-                {appel.documents && appel.documents.length > 0 ? (
+                {(appel.documents && (appel.documents.filter && appel.documents.filter(doc => !doc.langue || doc.langue === i18n.language).length > 0)) ? (
                   <div className="col-lg-12">
                     <br />
                     <br />
-                    <span className="titreDocument">
+                    <span style={{
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: 'rgb(99, 36, 35)'
+                          }}>
                       {t("plus_d_informations")} :{" "}
                     </span>
                     <br />
                     <br />
-                    {appel.documents.map((document, index) => (
+                    {(appel.documents.filter ? appel.documents.filter(document => !document.langue || document.langue === i18n.language) : appel.documents).map((document, index) => (
                       <a
                         key={index}
                         className="titreDoc"
@@ -135,14 +139,18 @@ const DetailAvisInfo = () => {
                           src="https://beta.mr/img/pdf.png"
                           alt="PDF Icon"
                         />
-                        <span>{document.titre_document}</span>{" "}
+                        <span style={{
+                            fontSize: '19px',
+                            fontWeight: 'bold'
+                          }}>
+                            {document.titre_piece_join}
+                          </span>{" "} <br />
                         {/* Afficher le titre du document */}
                       </a>
                     ))}
                     <br />
                   </div>
-                ) : // Masquer la section si aucun document n'existe
-                null}
+                ) : null}
               </div>
               <div className="card-footer mt-5">
                 <div className="row">

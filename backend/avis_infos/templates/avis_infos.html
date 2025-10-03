@@ -110,7 +110,7 @@
                                         <!-- Boutons Supprimer, Modifier et Détails -->
                                         {% if perms.avis_infos.delete_avisinfos %}
                                             <button class="btn btn-danger btn-icon-split" 
-                                                onclick="submitAction('supprimer', {{ avis.id }})"
+                                                {% comment %} onclick="submitAction('supprimer', {{ avis.id }})" {% endcomment %}
                                                 type="submit" name="action" 
                                                 value="supprimer" {% if avis.si_valider %}disabled{% endif %} 
                                                 title="Supprimer l'avis" 

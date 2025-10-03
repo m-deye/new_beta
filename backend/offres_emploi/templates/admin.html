@@ -136,7 +136,7 @@
                         <!-- Boutons Supprimer, Modifier et Détails -->
                         {% if perms.offres_emploi.delete_offreemploi %}
                           <button class="btn btn-danger btn-icon-split"
-                                  onclick="submitAction('supprimer', {{ offre.id }})"
+                                  {% comment %} onclick="submitAction('supprimer', {{ offre.id }})" {% endcomment %}
                                   type="submit"
                                   name="action"
                                   value="supprimer"

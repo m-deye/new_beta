@@ -176,7 +176,13 @@ const Maintemplate = () => {
                                     {appel.offres_liees.map((linked, idx) => (
                                       <span key={idx}>
                                         <a
-                                          href={`/appel-offre/${linked.id}`}
+                                          href={appel.client__special
+                                                    ? `/ClientSpecielApple/${encodeURIComponent(
+                                                        appel.client__nom
+                                                      )}/${linked.id}`
+                                                    : `/appel-offre/${linked.id}`
+                                                  }
+                                            // `/appel-offre/${linked.id}`}
                                           className="titre_group_apple"
                                         >
                                           <span
@@ -306,7 +312,12 @@ const Maintemplate = () => {
                                       {offer.offres_liees.map((linked, idx) => (
                                         <p key={idx}>
                                           <a
-                                            href={`/DetailOffreEmploi/${linked.id}`}
+                                            href={offer.client__special
+                                                    ? `/ClientSpeciele/${encodeURIComponent(
+                                                        offer.client__nom
+                                                      )}/${linked.id}`
+                                                    : `/DetailOffreEmploi/${linked.id}`}
+                                              // `/DetailOffreEmploi/${linked.id}`}
                                             className="textnone"
                                           >
                                             <span
@@ -417,7 +428,15 @@ const Maintemplate = () => {
                                     {avis.avis_liees.map((linked, idx) => (
                                       <div key={idx} style={{ marginBottom: "-15px", marginLeft: "-3px" }}>
                                         <a
-                                          href={`/avis-infos/${linked.id}`}
+                                          href={avis.client__special
+                                                    ? `/ClientSpecielAvis/${encodeURIComponent(
+                                                        avis.client__nom
+                                                      )}/${linked.id}`
+                                                    : `/avis-infos/${linked.id}`
+                                                  }
+                                            
+                                            
+                                            // `/avis-infos/${linked.id}`}
                                           className="textnone textavis"
                                         >
                                           <span

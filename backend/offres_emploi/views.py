@@ -2108,13 +2108,16 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
 def detail_offre_api(request, offre_id):
+    print("-------------------","detail_offre_api")
     lang = request.GET.get('lang', 'fr')
     offre = get_object_or_404(OffreEmploi, id=offre_id) 
     # offre.nombre_vu = offre.nombre_vu+ 1
     # offre.save()
-    documents = offre.documents.all()
+    
+    # Filtrer les documents selon la langue
+    documents = offre.documents.filter(langue=lang)
 
-    # 3. Préparer les données des documents (inchangé)
+    # 3. Préparer les données des documents filtrés par langue
     documents_data = []
     for document in documents:
         documents_data.append({
@@ -2123,6 +2126,7 @@ def detail_offre_api(request, offre_id):
             "piece_join": request.build_absolute_uri(document.piece_join.url)
                            if document.piece_join else None,
             "date_creation": document.date_creation.strftime('%Y-%m-%d %H:%M:%S'),
+            "langue": document.langue,
         })
 
     # 4. Sélectionner les champs traduits en fonction de la langue
@@ -2170,27 +2174,55 @@ def liste_annoces_cleint(request):
 
 
 def liste_annonces_client(request, client_nom):
-    # Filtrer les offres par client si le paramètre est présent
-    offres_list = OffreEmploi.objects.filter(si_valider=True ,client__libelle_fr=client_nom).select_related('client')
+    print("AAAAAAAAAAAAAAAAAAAAAAAA",request.GET.get('lang', 'fr'))
+    lang = request.GET.get('lang', 'fr')
+    # Filtrer les offres par client selon la langue
+    if lang == "ar":
+        offres_list = OffreEmploi.objects.filter(
+            si_valider=True,
+            client__libelle_ar=client_nom
+        ).select_related('client')
+    else:
+        offres_list = OffreEmploi.objects.filter(
+            si_valider=True,
+            client__libelle_fr=client_nom
+        ).select_related('client')
+    print(offres_list)
+    # Préparer les données selon la langue
+    offres_data = []
+    for off in offres_list:
+        titre = off.titre_ar if lang == 'ar' and hasattr(off, 'titre_ar') else off.titre
+        description = off.description_ar if lang == 'ar' and hasattr(off, 'description_ar') else off.description
+        titre_entreprise = off.titre_entreprise_ar if lang == 'ar' and hasattr(off, 'titre_entreprise_ar') else off.titre_entreprise
+        lieu = off.lieu_ar if lang == 'ar' and hasattr(off, 'lieu_ar') else off.lieu
 
-    # Préparer les données à renvoyer
-    offres_data = [
-        {
+        # Date: renvoyer structure pour un formatage fiable côté front
+        if off.date_limite:
+            date_limite = {
+                "days": [off.date_limite.day],
+                "months": [off.date_limite.month],
+                "year": off.date_limite.year,
+                "times": [{"hour": off.date_limite.hour, "minute": off.date_limite.minute}] if off.afficher_heures else []
+            }
+        else:
+            date_limite = None
+
+        offres_data.append({
             "id": off.id,
-            'titre': off.titre,
-            'description': off.description,
-            'date_limite': off.date_limite.strftime('%Y-%m-%d %H:%M') if off.afficher_heures and off.date_limite else (off.date_limite.strftime('%Y-%m-%d') if off.date_limite else None),
-            'lieu': off.lieu,
-            'type_offre': off.type_offre,
-            'titre_entreprise': off.titre_entreprise,
-            'client__nom': off.client.libelle_fr if off.client else None,
-            'client__logo': request.build_absolute_uri(off.client.logo.url) if off.client and off.client.logo else None,
-            'client__site_web': off.client.site_web if off.client else None,
-            'afficher_heures': off.afficher_heures,
-        }
-        for off in offres_list
-    ]
-
+            "titre": titre,
+            "description": description,
+            "date_limite": date_limite,
+            "lieu": lieu,
+            "type_offre": off.type_offre,
+            "titre_entreprise": titre_entreprise,
+            "client__nom": (off.client.libelle_ar if lang == 'ar' else off.client.libelle_fr) if off.client else None,
+            "client__logo": request.build_absolute_uri(off.client.logo.url) if off.client and off.client.logo else None,
+            "client__site_web": off.client.site_web if off.client else None,
+            "afficher_heures": off.afficher_heures,
+            "lang": lang,
+            "dir": 'rtl' if lang == 'ar' else 'ltr',
+        })
+    print(offres_data)
     return JsonResponse(offres_data, safe=False)
 
 

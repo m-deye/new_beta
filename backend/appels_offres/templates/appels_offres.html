@@ -118,7 +118,7 @@
                                         <!-- Boutons Supprimer, Modifier et Détails -->
                                         {% if perms.appels_offres.delete_appeloffre %}
                                         <button class="btn btn-danger btn-icon-split" 
-                                            onclick="submitAction('supprimer', {{ offre.id }})"
+                                            {% comment %} onclick="submitAction('supprimer', {{ offre.id }})" {% endcomment %}
                                             type="submit" name="action" 
                                             value="supprimer" {% if offre.si_valider %}disabled{% endif %} 
                                             title="Supprimer l'offre" 

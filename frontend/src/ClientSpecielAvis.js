@@ -11,12 +11,12 @@ import { useTranslation } from 'react-i18next';
 
 import { FaInfoCircle, FaList, FaShare, FaFacebook, FaLinkedin, FaWhatsapp } from 'react-icons/fa';
 
-const OffreCard = ({ logo, entreprise, titre, date, type_offre, id, lieu }) => {
+const OffreCard = ({ logo, entreprise, titre, dateText, type_offre, id, lieu, isRTL, onSelect }) => {
   return (
     <div className="col-sm-12 col-md-6" style={{ marginBottom: '10px', paddingRight: '20px' }}>
-      <div className="card post-card pb-1" style={{ height: '100%' }}>
+      <div className="card post-card pb-1" style={{ height: '100%' }} onClick={onSelect}>
         <div className="card-bod" style={{ padding: '2px' }}>
-          <div className="card-badge">{type_offre}</div>
+          <div className="card-badge" style={isRTL ? { left: 0, right: 'auto' } : undefined}>{type_offre}</div>
           <div className="col-md-12">
             <div className="row pl-0">
               <div className="col-sm-2 pr-0 pl-0">
@@ -25,13 +25,13 @@ const OffreCard = ({ logo, entreprise, titre, date, type_offre, id, lieu }) => {
               <div className="col-sm-10 pl-0">
                 <div className="post-card-content sizeBd align-self-center entreprise" dangerouslySetInnerHTML={{ __html: entreprise }} ></div>
                 <div className=" text-beta sizeBd mb-1 titre1">
-                  <a href={`/DetailOffreEmploi/${id}`} className="titleAnn font-weight-bold fw-bold" >
+                  <a href={`/DetailOffreEmploi/${id}`} className="titleAnn font-weight-bold fw-bold" onClick={(e)=>{e.preventDefault(); if (onSelect) onSelect();}}>
                     <p className="mb-0" dangerouslySetInnerHTML={{ __html: titre }}></p>
                   </a>
                 </div>
                 <div className=" small dateleiu">
                   <span className="text-danger" >
-                    <i className="far fa-clock"></i> {date}
+                    <i className="far fa-clock"></i> {dateText}
                   </span>
                   <span className="lieuappleoffre" style={{ color: '#0C74CC' }}>
                     <i className="fas fa-map-marker-alt "></i>{" "}
@@ -47,12 +47,12 @@ const OffreCard = ({ logo, entreprise, titre, date, type_offre, id, lieu }) => {
   );
 };
 
-const AppelCard = ({ logo, entreprise, titre, date, type_s, id }) => {
+const AppelCard = ({ logo, entreprise, titre, dateText, type_s, id, isRTL, onSelect }) => {
   return (
     <div className="col-sm-12 col-md-6" style={{ marginBottom: '10px', paddingRight: '20px' }}>
-      <div className="card post-card pb-1" style={{ height: '100%' }}>
+      <div className="card post-card pb-1" style={{ height: '100%' }} onClick={onSelect}>
         <div className="card-bod" style={{ padding: '2px' }}>
-          <div className="card-badge">{type_s}</div>
+          <div className="card-badge" style={isRTL ? { left: 0, right: 'auto' } : undefined}>{type_s}</div>
           <div className="col-md-12">
             <div className="row pl-0">
               <div className="col-sm-2 pr-0 pl-0">
@@ -61,13 +61,13 @@ const AppelCard = ({ logo, entreprise, titre, date, type_s, id }) => {
               <div className="col-sm-10 pl-0">
                 <div className="post-card-content sizeBd align-self-center entreprise" dangerouslySetInnerHTML={{ __html: entreprise }} ></div>
                 <div className=" text-beta sizeBd mb-1 titre1">
-                  <a href={`/appel-offre/${id}`} className="titleAnn font-weight-bold fw-bold" >
+                  <a href={`/appel-offre/${id}`} className="titleAnn font-weight-bold fw-bold" onClick={(e)=>{e.preventDefault(); if (onSelect) onSelect();}}>
                     <p className="mb-0" dangerouslySetInnerHTML={{ __html: titre }}></p>
                   </a>
                 </div>
                 <div className="post-card-limit small" style={{ marginTop: '-15px', fontSize: '9.6px' }}>
                   <span className="text-danger">
-                    <i className="far fa-clock"></i> {date}
+                    <i className="far fa-clock"></i> {dateText}
                   </span>
                 </div>
               </div>
@@ -79,12 +79,12 @@ const AppelCard = ({ logo, entreprise, titre, date, type_s, id }) => {
   );
 };
 
-const AvisCard = ({ logo, entreprise, titre, id }) => {
+const AvisCard = ({ logo, entreprise, titre, id, isRTL, onSelect }) => {
   return (
     <div className="col-sm-12 col-md-6" style={{ marginBottom: '10px', paddingRight: '20px' }}>
-      <div className="card post-card pb-1" style={{ height: '100%' }}>
+      <div className="card post-card pb-1" style={{ height: '100%' }} onClick={onSelect}>
         <div className="card-bod" style={{ padding: '2px' }}>
-        <div className="card-badge">Avis & infos</div>
+        <div className="card-badge" style={isRTL ? { left: 0, right: 'auto' } : undefined}>{isRTL ? 'مسابقات وإعلانات' : 'Avis & infos'}</div>
           <div className="col-md-12">
             <div className="row pl-0">
               <div className="col-sm-2 pr-0 pl-0">
@@ -93,7 +93,7 @@ const AvisCard = ({ logo, entreprise, titre, id }) => {
               <div className="col-sm-10 pl-0">
                 <div className="post-card-content sizeBd align-self-center entreprise" dangerouslySetInnerHTML={{ __html: entreprise }} ></div>
                 <div className="titre1 text-beta sizeBd mb-1">
-                  <a href={`/avis-infos/${id}`} className="titleAnn font-weight-bold fw-bold" >
+                  <a href={`/avis-infos/${id}`} className="titleAnn font-weight-bold fw-bold" onClick={(e)=>{e.preventDefault(); if (onSelect) onSelect();}}>
                     <p className="mb-0" dangerouslySetInnerHTML={{ __html: titre }}></p>
                   </a>
                 </div>
@@ -127,6 +127,7 @@ const ClientSpecielAvis = () => {
   
   const { i18n, t } = useTranslation(); 
   const isRTL = i18n.language === 'ar'; 
+  const [selectedDetail, setSelectedDetail] = useState(null); // { type, id }
 
       // Fonction de formatage jour mois année
       const formatDateSimple = isoString => {
@@ -149,6 +150,27 @@ const ClientSpecielAvis = () => {
 
 
       const hasViewed = useRef(false);
+
+      const formatDateFromServer = (dateObj, afficherHeures) => {
+        if (!dateObj) return '';
+        const day = Array.isArray(dateObj.days) ? dateObj.days[0] : null;
+        const month = Array.isArray(dateObj.months) ? dateObj.months[0] : null; // 1-12
+        const year = dateObj.year;
+        const hasTime = afficherHeures && dateObj.times && dateObj.times.length > 0;
+        const hour = hasTime ? dateObj.times[0].hour : 0;
+        const minute = hasTime ? dateObj.times[0].minute : 0;
+        if (!day || !month || !year) return '';
+        const jsDate = new Date(year, (month - 1), day, hour, minute);
+        const locale = i18n.language === 'ar' ? 'ar-EG' : 'fr-FR';
+        const options = {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          numberingSystem: i18n.language === 'ar' ? 'latn' : undefined,
+          ...(hasTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+        };
+        return new Intl.DateTimeFormat(locale, options).format(jsDate);
+      };
       useEffect(() => {
         const fetchOffre = async () => {
             try {
@@ -176,14 +198,14 @@ const ClientSpecielAvis = () => {
 
   useEffect(() => {
     if (activeTab === 'tab2') {
-      axiosInstance.get(`/annonces_parclient/${client__nom}/`)
+      axiosInstance.get(`/annonces_parclient/${client__nom}/?lang=${i18n.language}`)
       .then(res => {
         setOffres(res.data);
         setNbOffres(res.data.length);
       })
         .catch(err => console.error('Erreur lors du chargement des offres :', err));
     } else if (activeTab === 'tab3') {
-      axiosInstance.get(`/appels_offres/annonces_parclient/?client=${encodeURIComponent(client__nom)}`)
+      axiosInstance.get(`/appels_offres/annonces_parclient/?client=${encodeURIComponent(client__nom)}&lang=${i18n.language}`)
         .then(res => {setAppels(res.data);
           setNbApples(res.data.length);
         })
@@ -191,20 +213,45 @@ const ClientSpecielAvis = () => {
     
     } 
     else if (activeTab === 'tab1') {
-    axiosInstance.get(`/avis_infos/detail/${offreId}/?lang=${i18n.language}`)
-      .then(res => setOffre(res.data))
-      .catch(err => console.error('Erreur lors du chargement des appels d offres :', err));
+      const loadDetail = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          let url = null;
+          if (selectedDetail && selectedDetail.type && selectedDetail.id) {
+            if (selectedDetail.type === 'offre') {
+              url = `/api/offres/detail/${selectedDetail.id}/?lang=${i18n.language}`;
+            } else if (selectedDetail.type === 'appel') {
+              url = `/appels_offres/detail/${selectedDetail.id}/?lang=${i18n.language}`;
+            } else if (selectedDetail.type === 'avis') {
+              url = `/avis_infos/detail/${selectedDetail.id}/?lang=${i18n.language}`;
+            }
+          } else if (offreId) {
+            url = `/avis_infos/detail/${offreId}/?lang=${i18n.language}`;
+          }
+          if (url) {
+            const res = await axiosInstance.get(url);
+            setOffre(res.data);
+          }
+        } catch (e) {
+          console.error('Erreur chargement detail:', e);
+          setError(e?.message || 'Erreur chargement detail');
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadDetail();
   
     }
      else if (activeTab === 'tab4') {
-      axiosInstance.get(`/avis_infos/annonces_parclient/?client=${encodeURIComponent(client__nom)}`)
+      axiosInstance.get(`/avis_infos/annonces_parclient/?client=${encodeURIComponent(client__nom)}&lang=${i18n.language}`)
         .then(res => {setAvis(res.data);
           setNbAvis(res.data.length);
 
         })
         .catch(err => console.error('Erreur lors du chargement des avis :', err));
     }
-  }, [activeTab]);
+  }, [activeTab, i18n.language, selectedDetail, offreId]);
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
@@ -213,7 +260,7 @@ const ClientSpecielAvis = () => {
 
 
   return (
-    <div>
+    <div dir={isRTL ? 'rtl' : 'ltr'}>
     <Header />
     <Navbar />
     <div className="container py-4" style={{ background: '#fff' }}>
@@ -227,7 +274,7 @@ const ClientSpecielAvis = () => {
             </div>
             <div className="col-md-3 text-right">
               <h5 className="text-beta">
-                <a href="/Login" style={{textDecoration:'none'}}>Compte Client</a>
+                <a href="/Login" style={{textDecoration:'none'}}>{isRTL ? 'حساب العميل' : 'Compte Client'}</a>
               </h5>
             </div>
           </div>
@@ -238,13 +285,13 @@ const ClientSpecielAvis = () => {
                 <FaInfoCircle />
               </button>
               <button className={`nav-item nav-link ${activeTab === 'tab2' ? 'active' : ''}`} onClick={() => handleTabClick('tab2')}>
-                <FaList /> <b>Offres d'emploi (<span className="text-danger">{nbOffres}</span>)</b>
+                <FaList /> <b>{isRTL ? 'عروض الوظائف' : "Offres d'emploi"} (<span className="text-danger">{nbOffres}</span>)</b>
               </button>
               <button className={`nav-item nav-link ${activeTab === 'tab3' ? 'active' : ''}`} onClick={() => handleTabClick('tab3')}>
-                <FaList /> <b>Appels d'Offres (<span className="text-danger">{nbOApples}</span>)</b>
+                <FaList /> <b>{isRTL ? 'عروض المناقصات' : "Appels d'Offres"} (<span className="text-danger">{nbOApples}</span>)</b>
               </button>
               <button className={`nav-item nav-link ${activeTab === 'tab4' ? 'active' : ''}`} onClick={() => handleTabClick('tab4')}>
-                <FaList /> <b>Avis & infos (<span className="text-danger">{nbOAvis}</span>)</b>
+                <FaList /> <b>{isRTL ? 'مسابقات وإعلانات' : 'Avis & infos'} (<span className="text-danger">{nbOAvis}</span>)</b>
               </button>
             </div>
           </nav>
@@ -277,12 +324,19 @@ const ClientSpecielAvis = () => {
                                         </div>
 
                                         {/* Vérifier si des documents existent */}
-                                        {offre.documents && offre.documents.length > 0 ? (
+                                        {(offre.documents && (offre.documents.filter && offre.documents.filter(doc => !doc.langue || doc.langue === i18n.language).length > 0)) ? (
                                             <div className="col-lg-12">
                                                 <br /><br />
-                                                <span className="titreDocument">{t('plus_d_informations')} : </span>
+                                                {/* <span className="titreDocument">{t('plus_d_informations')} : </span> */}
+                                                <span style={{
+                                                      fontSize: '14px',
+                                                      fontWeight: 'bold',
+                                                      color: 'rgb(99, 36, 35)'
+                                                    }}>
+                                                {t("plus_d_informations")} :{" "}
+                                              </span>
                                                 <br /><br />
-                                                {offre.documents.map((document, index) => (
+                                                {(offre.documents.filter ? offre.documents.filter(document => !document.langue || document.langue === i18n.language) : offre.documents).map((document, index) => (
                                                     <a
                                                         key={index}
                                                         className="titreDoc"
@@ -295,7 +349,12 @@ const ClientSpecielAvis = () => {
                                                             src="https://beta.mr/img/pdf.png"
                                                             alt="PDF Icon"
                                                         />
-                                                        <span  >{document.titre_document}</span > {/* Afficher le titre du document */}
+                                                        <span style={{
+                                                              fontSize: '19px',
+                                                              fontWeight: 'bold'
+                                                            }}>
+                                                              {document.titre_piece_join}
+                                                            </span>{" "} <br />{/* Afficher le titre du document */}
                                                     </a>
                                                 ))}
                                                 <br />
@@ -365,20 +424,22 @@ const ClientSpecielAvis = () => {
             <div className={`tab-pane fade ${activeTab === 'tab2' ? 'show active' : ''}`} id="tab2">
               <div className="row px-lg-4 px-0">
                 {offres.length > 0 ? (
-                  offres.map((offre, index) => (
+                  offres.map((off, index) => (
                     <OffreCard
                       key={index}
-                      logo={offre.client__logo}
-                      entreprise={offre.client__nom}
-                      titre={offre.titre}
-                      date={offre.date_limite}
-                      id={offre.id}
-                      type_offre={offre.type_offre}
-                      lieu={offre.lieu}
+                      logo={off.client__logo}
+                      entreprise={off.client__nom}
+                      titre={off.titre}
+                      dateText={formatDateFromServer(off.date_limite, off.afficher_heures)}
+                      id={off.id}
+                      type_offre={off.type_offre}
+                      lieu={off.lieu}
+                      isRTL={isRTL}
+                      onSelect={() => { setSelectedDetail({ type: 'offre', id: off.id }); handleTabClick('tab1'); }}
                     />
                   ))
                 ) : (
-                  <p>Aucune offre d'emploi disponible.</p>
+                  <p>{isRTL ? 'لا توجد عروض وظائف متاحة.' : "Aucune offre d'emploi disponible."}</p>
                 )}
               </div>
             </div>
@@ -386,19 +447,21 @@ const ClientSpecielAvis = () => {
             <div className={`tab-pane fade ${activeTab === 'tab3' ? 'show active' : ''}`} id="tab3">
               <div className="row px-lg-4 px-0">
                 {appels.length > 0 ? (
-                  appels.map((appel, index) => (
+                  appels.map((ap, index) => (
                     <AppelCard
                       key={index}
-                      logo={appel.client__logo}
-                      entreprise={appel.client__nom}
-                      titre={appel.titre}
-                      date={appel.date_limite}
-                      id={appel.id}
-                      type_s={appel.type_s}
+                      logo={ap.client__logo}
+                      entreprise={ap.client__nom}
+                      titre={ap.titre}
+                      dateText={formatDateFromServer(ap.date_limite, ap.afficher_heures)}
+                      id={ap.id}
+                      type_s={ap.type_s}
+                      isRTL={isRTL}
+                      onSelect={() => { setSelectedDetail({ type: 'appel', id: ap.id }); handleTabClick('tab1'); }}
                     />
                   ))
                 ) : (
-                  <p>Aucun appel d'offres disponible.</p>
+                  <p>{isRTL ? 'لا توجد عروض مناقصات متاحة.' : "Aucun appel d'offres disponible."}</p>
                 )}
               </div>
             </div>
@@ -412,10 +475,12 @@ const ClientSpecielAvis = () => {
                       entreprise={item.client__nom}
                       titre={item.titre}
                       id={item.id}
+                      isRTL={isRTL}
+                      onSelect={() => { setSelectedDetail({ type: 'avis', id: item.id }); handleTabClick('tab1'); }}
                     />
                   ))
                 ) : (
-                  <p>Aucun avis ou information disponible.</p>
+                  <p>{isRTL ? 'لا توجد مسابقات أو إعلانات متاحة.' : 'Aucun avis ou information disponible.'}</p>
                 )}
               </div>
             </div>

@@ -450,7 +450,7 @@ def liste_avis_infos(request):
     else:
         avis_list = (
             AvisInfos.objects
-                    .filter(si_valide_arr=True)
+                    .filter(si_valider_ar=True)
                     .filter(Q(si_principal=True) | Q(avis_principale__isnull=True))
                     .select_related('client')
                     .prefetch_related('avis_liees').order_by('-date_mise_en_ligne')[:limite]
@@ -540,7 +540,7 @@ def liste_avis_infos(request):
     return JsonResponse(avis_data, safe=False)
 
 def detail_avis_infos(request, avis_id):
-    
+    print("-------------------","detail_avis_infos")
     lang = request.GET.get('lang', 'fr')
     appel = get_object_or_404(AvisInfos, id=avis_id)
     documents = appel.documents.all()
