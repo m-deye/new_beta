@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container mt-5">
-  <h2>Traduction de l'appels d'offre</h2>
+  <h2>Traduction : {{ offre.titre|striptags }}</h2>
   {{ form.media }}
 
   <form method="post" enctype="multipart/form-data">
@@ -145,16 +145,13 @@
                      class="btn btn-sm btn-outline-primary me-1">
                     Voir / Télécharger
                   </a>
-                  <form method="post" style="display:inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="delete_doc_id" value="{{ doc.id }}">
-                    <button type="submit"
-                            name="action"
-                            value="supprimer"
-                            class="btn btn-sm btn-outline-danger">
+                  <button type="button"
+                          name="action"
+                          value="supprimer"
+                          class="btn btn-sm btn-outline-danger delete-document"
+                          data-doc-id="{{ doc.id }}">
                       Supprimer
                     </button>
-                  </form>
                 </div>
               </li>
             {% endfor %}
@@ -206,10 +203,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const deleteButtons = document.querySelectorAll('button[name="action"][value="supprimer"]');
+  const deleteButtons = document.querySelectorAll('.delete-document');
   deleteButtons.forEach(button => {
     button.addEventListener('click', function (event) {
       event.preventDefault();
+      const docId = button.getAttribute('data-doc-id');
       Swal.fire({
         title: "Êtes-vous sûr ?",
         text: "Cette action est irréversible !",
@@ -221,7 +219,35 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelButtonText: "Annuler",
       }).then((result) => {
         if (result.isConfirmed) {
-          button.closest('form').submit();
+          // Créer un formulaire caché pour la suppression
+          const hiddenForm = document.createElement('form');
+          hiddenForm.method = 'post';
+          hiddenForm.style.display = 'none';
+          
+          // Ajouter le token CSRF
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrfmiddlewaretoken';
+          csrfInput.value = csrfToken;
+          hiddenForm.appendChild(csrfInput);
+          
+          // Ajouter l'ID du document
+          const docIdInput = document.createElement('input');
+          docIdInput.type = 'hidden';
+          docIdInput.name = 'delete_doc_id';
+          docIdInput.value = docId;
+          hiddenForm.appendChild(docIdInput);
+          
+          // Ajouter l'action
+          const actionInput = document.createElement('input');
+          actionInput.type = 'hidden';
+          actionInput.name = 'action';
+          actionInput.value = 'supprimer';
+          hiddenForm.appendChild(actionInput);
+          
+          document.body.appendChild(hiddenForm);
+          hiddenForm.submit();
         }
       });
     });

@@ -430,6 +430,22 @@
         });
     });
     
+    document.addEventListener('DOMContentLoaded', function () {
+        {% for message in messages %}
+            Swal.fire({
+                toast: true,
+                position: "top",  // 🔥 Affiche la notification en haut centré
+                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% endif %}",
+                title: "{{ message }}",
+                showConfirmButton: false, // Pas de bouton OK
+                timer: 5000, // Disparaît après 5 secondes
+                timerProgressBar: true, // Affiche une barre de progression
+                background: "#fff",
+                color: "#333"
+            });
+        {% endfor %}
+    });
+    
     // Fonctionnalité pour le bouton "Changer de catégorie"
     {% comment %} document.addEventListener('DOMContentLoaded', function () {
         const changeCategoryButtons = document.querySelectorAll('.change-category-btn');

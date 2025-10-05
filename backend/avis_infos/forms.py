@@ -89,3 +89,14 @@ class TraductionAvisInfos(forms.ModelForm):
             ),
             'lieu_ar': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+class DocumentForms(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['langue', 'titre_document', 'titre_piece_join', 'piece_join']
+        widgets = {
+            'langue':          forms.Select(attrs={'class':'form-control'}),
+            'titre_document':  forms.TextInput(attrs={'class':'form-control'}),
+            'titre_piece_join':forms.TextInput(attrs={'class':'form-control'}),
+            'piece_join':      forms.ClearableFileInput(attrs={'class':'form-control'}),
+        }

@@ -81,18 +81,45 @@ def traduction_avis_infos(request):
 def traduire_avis(request, offre_id):
     offre = get_object_or_404(AvisInfos, id=offre_id)
 
-    if request.method == 'POST':
-        form = TraductionAvisInfos(request.POST, instance=offre)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Traduction enregistrée.")
-            return redirect('appels_offres')
-    else:
-        form = TraductionAvisInfos(instance=offre)
+    # --- Suppression d'un document existant ---
+    if request.method == 'POST' and request.POST.get('action') == 'supprimer':
+        doc_id = request.POST.get('delete_doc_id')
 
+        try:
+            doc = Document.objects.get(id=doc_id, avis_infos=offre)
+            doc.delete()
+            messages.success(request, "Document supprimé avec succès.")
+        except Document.DoesNotExist:
+            messages.error(request, "Document introuvable ou non autorisé.")
+        return redirect('traduire_avis_infos', offre_id=offre.id)
+
+    # Form de traduction et formset new
+    form_offre = TraductionAvisInfos(request.POST or None, instance=offre)
+    DocumentFormSet = inlineformset_factory(
+        AvisInfos, Document,
+        form=DocumentForms,
+        extra=1,
+        can_delete=False
+    )
+    formset_new = DocumentFormSet(
+        request.POST or None,
+        request.FILES or None,
+        instance=offre,
+        queryset=Document.objects.none()
+    )
+
+    if request.method == 'POST' and form_offre.is_valid() and formset_new.is_valid():
+        form_offre.save()
+        formset_new.save()
+        messages.success(request, "Traduction et nouveaux documents enregistrés.")
+        return redirect('avis_infos')
+
+    docs_exist = offre.documents.all()
     return render(request, 'traduction_avis_infos.html', {
-        'form': form,
-        'offre': offre,
+        'form':        form_offre,
+        'formset_new': formset_new,
+        'docs_exist':  docs_exist,
+        'offre':       offre,
     })
     
 @has_any_permission_for_model('AvisInfos','avis_infos')
@@ -554,6 +581,7 @@ def detail_avis_infos(request, avis_id):
             "piece_join": request.build_absolute_uri(document.piece_join.url)
                            if document.piece_join else None,
             "date_creation": document.date_creation.strftime('%Y-%m-%d %H:%M:%S'),
+            "langue": document.langue,
         })
 
     # 4. Sélectionner les champs traduits en fonction de la langue

@@ -88,12 +88,12 @@ def traduire_offre(request, offre_id):
         doc_id = request.POST.get('delete_doc_id')
 
         try:
-            doc = Document.objects.get(id=doc_id, offre_emploi=offre)
+            doc = Document.objects.get(id=doc_id, appels_offres=offre)
             doc.delete()
             messages.success(request, "Document supprimé avec succès.")
         except Document.DoesNotExist:
             messages.error(request, "Document introuvable ou non autorisé.")
-        return redirect('traduire_offre', offre_id=offre.id)
+        return redirect('traduire_appel_offre', offre_id=offre.id)
 
     # Form de traduction et formset new (reste inchangé)…
     form_offre = TraductionAppelOffre(request.POST or None, instance=offre)
@@ -711,6 +711,7 @@ def detail_apple_offre_api(request, apple_id):
             "piece_join": request.build_absolute_uri(document.piece_join.url)
                            if document.piece_join else None,
             "date_creation": document.date_creation.strftime('%Y-%m-%d %H:%M:%S'),
+            "langue": document.langue,
         })
 
     # 4. Sélectionner les champs traduits en fonction de la langue
