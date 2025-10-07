@@ -54,9 +54,11 @@
       <center>
         <h1>Liste des offres d'emploi</h1>
       </center>
-      <a href="{% url 'creer_offre' %}">
-        <button type="button" class="btn btn-primary">Créer une offre</button>
-      </a>
+      {% if perms.offres_emploi.add_offreemploi %}
+        <a href="{% url 'creer_offre' %}">
+          <button type="button" class="btn btn-primary">Créer une offre</button>
+        </a>
+      {% endif %}
     </div>
     <div class="container-fluid">
       <p class="mb-4"></p>
