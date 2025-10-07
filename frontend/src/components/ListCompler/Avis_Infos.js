@@ -47,7 +47,7 @@ const formatDateLimite = (dateLimite) => {
 };
 
 // Composant réutilisable pour une carte d'appel d'offres
-const OffreCard = ({ logo, entreprise, titre, date, type, id,  isRTL}) => {
+const OffreCard = ({ logo, entreprise, titre, date, type, id,  isRTL, client__special}) => {
   return (
     <div
       className="col-sm-12 col-sm-1 col-md-6"
@@ -73,7 +73,13 @@ const OffreCard = ({ logo, entreprise, titre, date, type, id,  isRTL}) => {
                 ></div>
                 <div className="text-beta sizeBd mb-1 titre1">
                   <a
-                    href={`/avis-infos/${id}`}
+                    href={
+                      // `/avis-infos/${id}`
+                      client__special ? `/ClientSpecielAvis/${encodeURIComponent(
+                                    entreprise
+                                  )}/${id}`
+                                : `/avis-infos/${id}`
+                    }
                     className="titleAnn font-weight-bold fw-bold"
                   >
                     <p
@@ -142,6 +148,7 @@ const Avis_Infos = () => {
                   type={t("avis_infos")}
                   id={offre.id}
                   isRTL={isRTL}
+                  client__special={offre.client__special}
                 />
               ))}
             </div>

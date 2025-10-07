@@ -23,7 +23,7 @@ const OffreCard = ({ logo, entreprise, titre, dateText, type_offre, id, lieu, is
             className="card-badge"
             style={isRTL ? { left: 0, right: 'auto' } : undefined}
           >
-            {type_offre === "OFFRE_EMPLOI" ? t("offres_emploi") : t("consultants")}
+            {t("offres_emploi")}
           </div>
           <div className="col-md-12">
             <div className="row pl-0">
@@ -98,8 +98,7 @@ const OffreEmploi = () => {
     const fetchOffres = async () => {
       try {
         const response = await axiosInstance.get(
-          `/annonces_parclient/${client__nom}/?lang=${i18n.language}`
-        );
+          `/annonces_parclient/?client=${encodeURIComponent(client__nom)}&lang=${i18n.language}`);
         setOffres(response.data);
       } catch (error) {
         console.error("Erreur :", error);
@@ -120,7 +119,7 @@ const OffreEmploi = () => {
           <div className="col-lg-12">
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
               <h1 className="h3 mb-0 text-beta" style={{ color: "#0C96B1" }}>
-                Offres d'emploi
+                {t("offres_emploi")}
               </h1>
             </div>
             <div className="row px-lg-4 px-0">

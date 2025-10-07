@@ -390,7 +390,7 @@ const ClientSpecielAvis = () => {
                                 <div className="btn-group" role="group" aria-label="Basic example">
                                 <a
                                             className="mr-3 btn btn-sm shadow-sm mb-1" // Suppression de btn-primary car nous définissons une couleur personnalisée
-                                            href="/listcompter_OffresEmplois"
+                                            href="/listcompter_AvisInfos"
                                             style={{
                                                 textDecoration: 'none', // Ajout de text-decoration: none
                                                 backgroundColor: '#4E73DF', // Ajout de la couleur de fond
@@ -401,7 +401,7 @@ const ClientSpecielAvis = () => {
                                         </a>
                                     <a
                                         className="btn btn-sm btn-primary shadow-sm mb-1" 
-                                        href={`/annonces_offreemp/${offre.client__nom}`}  style={{
+                                        href={`/annonces_avisinfos/${offre.client__nom}`}  style={{
                                             textDecoration: 'none', // Ajout de text-decoration: none
                                             backgroundColor: '#4E73DF', // Ajout de la couleur de fond
                                             

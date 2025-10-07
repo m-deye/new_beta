@@ -555,7 +555,8 @@ def liste_avis_infos(request):
                         "year":   a.date_limite.year,
                         "times":  [{"hour": a.date_limite.hour, "minute": a.date_limite.minute}]
                     } if a.date_limite else "N/A",
-                    "lieu":        a.lieu_ar        if lang == 'ar' else a.lieu
+                    "lieu":        a.lieu_ar        if lang == 'ar' else a.lieu,
+                    "client__special": avis.client.special if avis.client else False,
                 }
                 for a in liés
             ] if avis.si_principal else [],
@@ -696,30 +697,57 @@ def apple_offres_par_client(request, client_id):
 
 def liste_annoces_cleint(request):
     # Récupérer le paramètre "client" de la requête
+    lang = request.GET.get('lang', 'fr')
     client_name = request.GET.get('client', None)
-    print(client_name)
+    
+    if lang == "ar":
+        offres_list = AvisInfos.objects.filter(
+            si_valider_ar=True,
+            client__libelle_ar=client_name
+        ).select_related('client')
+    else:
+        offres_list = AvisInfos.objects.filter(
+            si_valider=True,
+            client__libelle_fr=client_name
+        ).select_related('client')
+    # Préparer les données selon la langue
+    offres_data = []
+    for off in offres_list:
+        
+        titre = off.titre_ar if lang == 'ar' and hasattr(off, 'titre_ar') else off.titre
+        description = off.description_ar if lang == 'ar' and hasattr(off, 'description_ar') else off.description
+        titre_entreprise = off.titre_entreprise_ar if lang == 'ar' and hasattr(off, 'titre_entreprise_ar') else off.titre_entreprise
+        lieu = off.lieu_ar if lang == 'ar' and hasattr(off, 'lieu_ar') else off.lieu
+        client__special = off.client.special if off.client else False
+        # Date: renvoyer structure pour un formatage fiable côté front
+        if off.date_limite:
+            date_limite = {
+                "days": [off.date_limite.day],
+                "months": [off.date_limite.month],
+                "year": off.date_limite.year,
+                "times": [{"hour": off.date_limite.hour, "minute": off.date_limite.minute}] if off.afficher_heures else []
+            }
+        else:
+            date_limite = None
 
-    # Filtrer les offres par client si le paramètre est présent
-    offres_list =AvisInfos.objects.all().select_related('client')
-    if client_name:
-        offres_list = offres_list.filter(si_valider=True ,client__libelle_fr=client_name)  # Correction ici
-
-    # Préparer les données à renvoyer
-    offres_data = [
-        {
+        offres_data.append({
             "id": off.id,
-            'titre': off.titre,
-            'description': off.description,
-            'date_limite': off.date_limite.strftime('%Y-%m-%d') if off.date_limite else None,  # Formater la date
-            'lieu': off.lieu,
-            'titre_entreprise': off.titre_entreprise,
-            'client__nom': off.client.libelle_fr if off.client else None,  # Accéder au nom du client
-            'client__logo': request.build_absolute_uri(off.client.logo.url) if off.client and off.client.logo else None,
-            'client__site_web': off.client.site_web if off.client else None,
-        }
-        for off in offres_list
-    ]
+            "titre": titre,
+            "description": description,
+            "date_limite": date_limite,
+            "lieu": lieu,
+            "client__special": client__special,
+            # "type_s": off.type_s,
+            "titre_entreprise": titre_entreprise,
+            "client__nom": (off.client.libelle_ar if lang == 'ar' else off.client.libelle_fr) if off.client else None,
+            "client__logo": request.build_absolute_uri(off.client.logo.url) if off.client and off.client.logo else None,
+            "client__site_web": off.client.site_web if off.client else None,
+            "afficher_heures": off.afficher_heures,
+            "lang": lang,
+            "dir": 'rtl' if lang == 'ar' else 'ltr',
+        })
 
+    print(offres_data)
     return JsonResponse(offres_data, safe=False)
 
 @csrf_exempt

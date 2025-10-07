@@ -7,7 +7,7 @@ import axiosInstance from "./api/axiosInstance";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-const Header = () => {
+const Header = ({ apiUrl = "/api/publicites/?main=oui" }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const [publicites, setPublicites] = useState([]);
@@ -16,12 +16,13 @@ const Header = () => {
 
   useEffect(() => {
     axiosInstance
-      .get("/api/publicites/")
+      // .get("/api/publicites/?main=oui")
+      .get(apiUrl)
       .then((response) => setPublicites(response.data))
       .catch((error) =>
         console.error("Erreur lors de la récupération des publicités :", error)
       );
-  }, []);
+  }, [apiUrl]);
 
   const handleLanguageChange = (newLang) => {
     i18n.changeLanguage(newLang);

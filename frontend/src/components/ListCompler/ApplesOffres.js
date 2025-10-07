@@ -32,7 +32,7 @@ const splitDateTime = (dateLimite) => {
   return { date: `${daysStr} ${monthsStr} ${year}`, time: timeStr };
 };
 // Composant réutilisable pour une carte d'appel d'offres
-const OffreCard = ({ logo, entreprise, titre, date, time, type_s, id }) => {
+const OffreCard = ({ logo, entreprise, titre, date, time, type_s, id , client__special}) => {
   return (
     <div
       className="col-sm-12 col-sm-1 col-md-6"
@@ -53,7 +53,13 @@ const OffreCard = ({ logo, entreprise, titre, date, time, type_s, id }) => {
                 ></div>
                 <div className="text-beta sizeBd mb-1" titre1>
                   <a
-                    href={`/appel-offre/${id}`}
+                    href={
+                      // `/appel-offre/${id}`
+                      client__special ? `/ClientSpecielApple/${encodeURIComponent(
+                                    entreprise
+                                  )}/${id}`
+                                : `/appel-offre/${id}`
+                    }
                     className="titleAnn font-weight-bold fw-bold"
                   >
                     <p
@@ -168,6 +174,7 @@ const ApplesOffres = () => {
                       time={mainDT.time}
                       id={offre.id}
                       type_s={offre.type_s}
+                      client__special = {offre.client__special}
                     />
                   );
 
@@ -185,6 +192,7 @@ const ApplesOffres = () => {
                           time={linkedDT.time}
                           id={li.id}
                           type_s={offre.type_s}
+                          client__special = {offre.client__special}
                         />
                       );
                     });

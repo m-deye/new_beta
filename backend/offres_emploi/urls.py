@@ -58,7 +58,7 @@ urlpatterns = [
        path('api/publicites/', views.get_publicites, name='get_publicites'), 
        path('api/offres/detail/<int:offre_id>/', views.detail_offre_api, name='get_publicites'),
       #  path('api/offres/detail/<int:offre_id>/', views.detail_offre_api, name='get_publicites'),
-       path('annonces_parclient/', views.liste_annoces_cleint, name='liste_annoces_cleint'), 
+      #  path('annonces_parclient/', views.liste_annoces_cleint, name='liste_annoces_cleint'), 
   
 
   path('api/login/', views.login_view, name='api-login'),
@@ -107,7 +107,7 @@ path('fixer-appel/<int:appel_id>/', views.fixer_appel, name='fixer_appel'),
 
   
 
-  path('annonces_parclient/<str:client_nom>/', views.liste_annonces_client, name='annonces_parclient'),
+  path('annonces_parclient/', views.liste_annonces_client, name='annonces_parclient'),
 
         path('offres/ajouter/<int:id>/', views.ajouter_offre, name='ajouter_offre'),
 

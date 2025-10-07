@@ -10,7 +10,7 @@ import Navbar from "../../Navbar";
 import Footer from "../../Footer";
 
 // Composant réutilisable pour une carte d'appel d'offres
-const OffreCard = ({ logo, entreprise, titre, dateText, type_s, id, isRTL, t }) => {
+const OffreCard = ({ logo, entreprise, titre, dateText, type_s, id, isRTL, t ,client__special}) => {
   return (
     <div
       className="col-sm-12 col-md-6"
@@ -36,7 +36,14 @@ const OffreCard = ({ logo, entreprise, titre, dateText, type_s, id, isRTL, t }) 
                 ></div>
                 <div className=" text-beta sizeBd mb-1 titre1">
                   <a
-                    href={`/appel-offre/${id}`}
+                    href={
+                      // `/appel-offre/${id}`
+                      client__special
+                                ? `/ClientSpecielApple/${encodeURIComponent(
+                                    entreprise
+                                  )}/${id}`
+                                : `/appel-offre/${id}`
+                    }
                     className="titleAnn font-weight-bold fw-bold"
                   >
                     <p
@@ -157,6 +164,7 @@ const ApplesOffre = () => {
                   type_s={offre.type_s}
                   isRTL={isRTL}
                   t={t}
+                  client__special={offre.client__special}
                 />
               ))}
             </div>

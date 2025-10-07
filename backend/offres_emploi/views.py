@@ -1548,9 +1548,14 @@ def avis_fixes(request):
     offres_list = list(offres)
 
     # 2) filtrer les offres « fixes » validées
-    qs = (AvisInfos.objects
-          .filter(si_fixe=True, si_valider=True)
-          .select_related('client'))
+    if lang == 'fr':
+        qs = (AvisInfos.objects
+            .filter(si_fixe=True, si_valider=True)
+            .select_related('client'))
+    else:
+        qs = (AvisInfos.objects
+            .filter(si_fixe=True, si_valider_ar=True)
+            .select_related('client'))
     data = []
     for offre in qs:
         titre            = offre.titre_ar if lang == 'ar' else offre.titre
@@ -1598,8 +1603,13 @@ def apples_fixes(request):
     offres_list = list(offres)
 
     # 2) filtrer les offres « fixes » validées
-    qs = (AppelOffre.objects
-          .filter(si_fixe=True, si_valider=True)
+    if lang == 'fr':
+        qs = (AppelOffre.objects
+            .filter(si_fixe=True, si_valider=True)
+            .select_related('client'))
+    else:
+        qs = (AppelOffre.objects
+          .filter(si_fixe=True, si_valider_ar=True)
           .select_related('client'))
     data = []
     for offre in qs:
@@ -1634,23 +1644,39 @@ def apples_fixes(request):
 
 def offres_fixes(request):  
     lang = request.GET.get('lang', 'fr')
-    offres = OffreEmploi.objects.filter(si_fixe=True).select_related('client').values(
-        'id',
-        'titre',
-        'date_limite',
-        'lieu',
-        'titre_entreprise', 
-        'client__logo',  # Contient le chemin de l'image
-        'client__libelle_fr',
-     
-    )
+    if lang == 'fr':
+        offres = OffreEmploi.objects.filter(si_fixe=True, si_valider=True).select_related('client').values(
+            'id',
+            'titre',
+            'date_limite',
+            'lieu',
+            'titre_entreprise', 
+            'client__logo',  # Contient le chemin de l'image
+            'client__libelle_fr',
+        
+        )
+    else:
+        offres = OffreEmploi.objects.filter(si_fixe=True, si_valider_ar=True).select_related('client').values(
+            'id',
+            'titre',
+            'date_limite',
+            'lieu',
+            'titre_entreprise', 
+            'client__logo',  # Contient le chemin de l'image
+            'client__libelle_fr',
+        
+        )
     offres_list = list(offres)
 
     # 2) filtrer les offres « fixes » validées
-    qs = (OffreEmploi.objects
-          .filter(si_fixe=True, si_valider=True)
+    if lang == 'fr':
+        qs = (OffreEmploi.objects
+            .filter(si_fixe=True, si_valider=True)
+            .select_related('client'))
+    else:
+        qs = (OffreEmploi.objects
+          .filter(si_fixe=True, si_valider_ar=True)
           .select_related('client'))
-
     # 3) construire la liste renvoyée
     data = []
     for offre in qs:
@@ -1836,12 +1862,13 @@ def get_publicite(request):
 def get_publicites(request):
     # Vérifier s'il existe au moins un client spécial
     existe_client_special = Publicite.objects.filter(client__special=True).exists()
-
-    if existe_client_special:
+    main = request.GET.get('main', 'oui')
+    if main == 'non':
+    
         # Si un client spécial existe, ne récupérer que ses publicités
         publicites = (
             Publicite.objects
-            .filter(client__special=True)
+            .filter(client__special=True,date_limite__gte=timezone.now().date())
             .select_related('client')
             .order_by('-date_creation')
         )
@@ -1850,6 +1877,7 @@ def get_publicites(request):
         publicites = (
             Publicite.objects
             .select_related('client')
+            .filter(date_limite__gte=timezone.now().date())
             .order_by('-date_creation')
         )
 
@@ -2173,29 +2201,32 @@ def liste_annoces_cleint(request):
     print(client_name)
 
 
-def liste_annonces_client(request, client_nom):
+def liste_annonces_client(request):
     print("AAAAAAAAAAAAAAAAAAAAAAAA",request.GET.get('lang', 'fr'))
     lang = request.GET.get('lang', 'fr')
+    client_name = request.GET.get('client', None)
     # Filtrer les offres par client selon la langue
+
     if lang == "ar":
         offres_list = OffreEmploi.objects.filter(
-            si_valider=True,
-            client__libelle_ar=client_nom
+            si_valider_ar=True,
+            client__libelle_ar=client_name
         ).select_related('client')
     else:
         offres_list = OffreEmploi.objects.filter(
             si_valider=True,
-            client__libelle_fr=client_nom
+            client__libelle_fr=client_name
         ).select_related('client')
-    print(offres_list)
     # Préparer les données selon la langue
+    print(offres_list,"------")
     offres_data = []
     for off in offres_list:
+        
         titre = off.titre_ar if lang == 'ar' and hasattr(off, 'titre_ar') else off.titre
         description = off.description_ar if lang == 'ar' and hasattr(off, 'description_ar') else off.description
         titre_entreprise = off.titre_entreprise_ar if lang == 'ar' and hasattr(off, 'titre_entreprise_ar') else off.titre_entreprise
         lieu = off.lieu_ar if lang == 'ar' and hasattr(off, 'lieu_ar') else off.lieu
-
+        client__special = off.client.special if off.client else False
         # Date: renvoyer structure pour un formatage fiable côté front
         if off.date_limite:
             date_limite = {
@@ -2213,7 +2244,8 @@ def liste_annonces_client(request, client_nom):
             "description": description,
             "date_limite": date_limite,
             "lieu": lieu,
-            "type_offre": off.type_offre,
+            "client__special": client__special,
+            # "type_s": off.type_s,
             "titre_entreprise": titre_entreprise,
             "client__nom": (off.client.libelle_ar if lang == 'ar' else off.client.libelle_fr) if off.client else None,
             "client__logo": request.build_absolute_uri(off.client.logo.url) if off.client and off.client.logo else None,
@@ -2222,7 +2254,6 @@ def liste_annonces_client(request, client_nom):
             "lang": lang,
             "dir": 'rtl' if lang == 'ar' else 'ltr',
         })
-    print(offres_data)
     return JsonResponse(offres_data, safe=False)
 
 
