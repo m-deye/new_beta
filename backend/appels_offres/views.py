@@ -766,12 +766,18 @@ def liste_appels_offres_partype(request):
     type_offre = request.GET.get('type', None)
     lang = request.GET.get('lang', 'fr')
     if type_offre:
-        offres = AppelOffre.objects.filter(
+        if lang == "ar":
+            offres = AppelOffre.objects.filter(
+            type_s__iexact=type_offre ,si_valider_ar=True
+            ).select_related('client').prefetch_related('offres_liees').order_by('date_limite')
+        else:
+            offres = AppelOffre.objects.filter(
             type_s__iexact=type_offre ,si_valider=True
             ).select_related('client').prefetch_related('offres_liees').order_by('date_limite')
         
-    else:
-        offres = AppelOffre.objects.all()
+        
+    # else:
+    #     offres = AppelOffre.objects.all()
 
     # Vérifie si le QuerySet est vide
     if not offres.exists():

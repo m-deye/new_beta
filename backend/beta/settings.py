@@ -225,7 +225,7 @@ DATABASES = {
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',  # Moteur de base de données
-#         'NAME': 'new_beta_dep',   # Nom de la base de données
+#         'NAME': 'rimbeta',   # Nom de la base de données
 #         'USER': 'root',       # Nom d'utilisateur MySQL
 #         'PASSWOR': '',      # Mot de passe MySQL
 #         'HOST': 'localhost',                   # Hôte (généralement 'localhost')
