@@ -32,7 +32,7 @@ class AvisInfosForm(forms.ModelForm):
         fields = (
             'titre', 'description', 'client', 'date_limite', 'date_mise_en_ligne', 'afficher_heures', 'lieu',
             # 'si_national', 'categorie',
-            'titre_entreprise', 'lien',  'groupement_spacial', 'titre_groupement_cpacial'
+            'titre_entreprise', 'lien',  'groupement_spacial', 'titre_groupement_cpacial' , 'avis_fixe'
         )
         # labels = {
         #     'si_national': 'National', 
@@ -55,6 +55,7 @@ class AvisInfosForm(forms.ModelForm):
             # 'categorie': forms.Select(attrs={'class': 'form-select'}),
             'groupement_spacial': forms.Select(attrs={'class': 'form-select'}),
             'titre_groupement_cpacial': forms.TextInput(attrs={'class': 'form-control'}),
+            'avis_fixe': forms.CheckboxInput(attrs={'class': 'toggle-switch-input', 'id': 'avis_fixe_toggle'}),  # Widget pour le nouveau champ
         }
 
     

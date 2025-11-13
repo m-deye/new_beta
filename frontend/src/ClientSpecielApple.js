@@ -198,7 +198,7 @@ const ClientSpecielApple = () => {
 
   useEffect(() => {
     if (activeTab === 'tab2') {
-      axiosInstance.get(`/annonces_parclient/${client__nom}/?lang=${i18n.language}`)
+      axiosInstance.get(`/annonces_parclient/?client=${encodeURIComponent(client__nom)}&lang=${i18n.language}`)
       .then(res => {
         setOffres(res.data);
         setNbOffres(res.data.length);
@@ -257,7 +257,9 @@ const ClientSpecielApple = () => {
     setActiveTab(tabId);
   };
 
-
+const Nbr_OffreEmploi = offre?.Nbr_OffreEmploi ?? 0;
+const Nbr_AvisInfos = offre?.Nbr_AvisInfos ?? 0;
+const Nbr_AppelOffre = offre?.Nbr_AppelOffre ?? 0;
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'}>
@@ -286,13 +288,13 @@ const ClientSpecielApple = () => {
                 <FaInfoCircle />
               </button>
               <button className={`nav-item nav-link ${activeTab === 'tab2' ? 'active' : ''}`} onClick={() => handleTabClick('tab2')}>
-                <FaList /> <b>{isRTL ? 'عروض الوظائف' : "Offres d'emploi"} (<span className="text-danger">{nbOffres}</span>)</b>
+                <FaList /> <b>{isRTL ? 'عروض الوظائف' : "Offres d'emploi"} (<span className="text-danger">{isRTL ? Nbr_OffreEmploi : Nbr_OffreEmploi }</span>)</b>
               </button>
               <button className={`nav-item nav-link ${activeTab === 'tab3' ? 'active' : ''}`} onClick={() => handleTabClick('tab3')}>
-                <FaList /> <b>{isRTL ? 'عروض المناقصات' : "Appels d'Offres"} (<span className="text-danger">{nbOApples}</span>)</b>
+                <FaList /> <b>{isRTL ? 'عروض المناقصات' : "Appels d'Offres"} (<span className="text-danger">{isRTL ? Nbr_AppelOffre : Nbr_AppelOffre}</span>)</b>
               </button>
               <button className={`nav-item nav-link ${activeTab === 'tab4' ? 'active' : ''}`} onClick={() => handleTabClick('tab4')}>
-                <FaList /> <b>{isRTL ? 'مسابقات وإعلانات' : 'Avis & infos'} (<span className="text-danger">{nbOAvis}</span>)</b>
+                <FaList /> <b>{isRTL ? 'مسابقات وإعلانات' : 'Avis & infos'} (<span className="text-danger">{isRTL ? Nbr_AvisInfos : Nbr_AvisInfos}</span>)</b>
               </button>
             </div>
           </nav>

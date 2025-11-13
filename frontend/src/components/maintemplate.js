@@ -201,10 +201,10 @@ const Maintemplate = () => {
                                 <i className="far fa-clock"></i>{" "}
                                 {formatDateLimite(appel.date_limite)}
                               </span>
-                              <span className="lieuappleoffre">
+                              {/* <span className="lieuappleoffre">
                                 <i className="fas fa-map-marker-alt"></i>{" "}
                                 {appel.lieu}
-                              </span>
+                              </span> */}
                             </div>
                           </a>
                         </div>
@@ -380,13 +380,17 @@ const Maintemplate = () => {
                         <div className="card-bod " style={{ padding: "2px" }}>
                           <a
                             href={
-                              avis.client__special
+                              avis.avis_fixe && avis.lien
+                                ? avis.lien
+                                : avis.client__special
                                 ? `/ClientSpecielAvis/${encodeURIComponent(
                                     avis.client__nom
                                   )}/${avis.id}`
                                 : `/avis-infos/${avis.id}`
                             }
                             className="textnone"
+                            target={avis.avis_fixe ? "_blank" : "_self"} // Ouvre dans un nouvel onglet si avis_fixe est true
+                            rel={avis.avis_fixe ? "noopener noreferrer" : ""}
                           >
                             <div className="row" style={{ marginLeft: "1px" }}>
                               <div

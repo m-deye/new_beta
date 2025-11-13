@@ -288,3 +288,5 @@ AUTH_USER_MODEL = 'gestion_utilisateur.UtilisateurPersonnalise'
 # AUTH_USER_MODEL = 'offres_emploi.UtilisateurPersonnalise'
 LOGIN_URL = '/connexion/'
 
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0  # Pas de limite (en octets)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 0  # Pas de limite (en octets)

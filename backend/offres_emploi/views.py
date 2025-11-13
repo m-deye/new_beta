@@ -15,6 +15,8 @@ from appels_offres.models import *
 from gestion_utilisateur.urls import *
 from avis_infos.urls import *
 from appels_offres.urls import *
+from appels_offres.models import *
+from avis_infos.models import *
 
 from .forms import *
 from gestion_utilisateur.forms import *
@@ -189,11 +191,7 @@ def export_pdf(request):
         client_id = request.GET.get('client')
         utilisateur_id = request.GET.get('utilisateur')
         categorie = request.GET.get('categorie')
-        print(date_debut)
-        print(date_fin)
-        print(client_id)
-        print(utilisateur_id)
-        print(categorie)
+
         # Initialiser une liste pour stocker toutes les annonces
         annonces = []
 
@@ -209,8 +207,7 @@ def export_pdf(request):
             offres_emploi = offres_emploi.filter(valider_par_id=utilisateur_id)
         if categorie and categorie == 'offre_emploi':
             annonces.extend(offres_emploi)
-        for i in annonces:
-            print("++",i)
+
         # Filtrer les appels d'offres
         appels_offres = AppelOffre.objects.filter(Q(si_valider=True) | Q(si_archiver=True))
         if date_debut:
@@ -253,7 +250,6 @@ def export_pdf(request):
                 annonce.type_display = "Avis et infos"
             else:
                 annonce.type_display = "Inconnu"
-            print("---------------------------",annonce)
         # Trier les annonces par date_mise_en_ligne
         def get_date_mise_en_ligne(annonce):
             date_value = annonce.date_mise_en_ligne
@@ -593,7 +589,6 @@ def connexion(request):
             if utilisateur is not None:
                 login(request, utilisateur)
                 # Rediriger l'administrateur vers la page admin_offres
-                print(request.user.role.name)
                 if request.user.role.name != 'client' and request.user.role.name != 'candidat':
                     # if request.user.role.name == 'admin':
                     return redirect('accueil')
@@ -754,7 +749,6 @@ def creer_offre(request):
 @login_required
 
 def creer_offre_parclient(request):
-    print("selma")
     if not hasattr(request.user, 'client'):
         return JsonResponse({"error": "Vous devez être un client pour créer une offre"}, status=403)
 
@@ -1039,8 +1033,6 @@ def ajouter_au_groupe(request):
 @csrf_exempt
 @api_view(['POST'])
 def inscription_client_front(request, role):
-    print(f"Rôle: {role}","AHmedou ----------------")
-    print(f"Requête: {request.data}")  # Afficher les données de la requête
 
     if role not in ['candidat', 'client']:
         return JsonResponse({'error': 'Role invalide.'}, status=400)
@@ -1048,7 +1040,6 @@ def inscription_client_front(request, role):
     # Sérialisation de l'utilisateur
     serializer = UtilisateurSerializer(data=request.data)
     if not serializer.is_valid():
-        print(f"Erreur de sérialisation: {serializer.errors}")  # Afficher les erreurs de sérialisation
         return JsonResponse({'error': 'Données invalides.', 'details': serializer.errors}, status=400)
 
     try:
@@ -1080,7 +1071,6 @@ def inscription_client_front(request, role):
             if client_serializer.is_valid():
                 client_serializer.save()
             else:
-                print(f"Erreur de sérialisation client: {client_serializer.errors}")
                 return JsonResponse({'error': 'Données invalides pour le client.', 'details': client_serializer.errors}, status=400)
 
         elif role == 'candidat':
@@ -1093,19 +1083,16 @@ def inscription_client_front(request, role):
             if candidat_serializer.is_valid():
                 candidat_serializer.save()
             else:
-                print(f"Erreur de sérialisation candidat: {candidat_serializer.errors}")
                 return JsonResponse({'error': 'Données invalides pour le candidat.', 'details': candidat_serializer.errors}, status=400)
 
         return JsonResponse({'message': f'Inscription réussie en tant que {role}.'}, status=201)
 
     except Exception as e:
-        print(f"Erreur interne: {str(e)}")
         return JsonResponse({'error': f'Erreur interne : {str(e)}'}, status=500)
 
 
 @api_view(['GET'])
 def get_client_profile(request, client_id):
-    print(client_id)
     try:
         client = Client.objects.get(id=client_id)
         client_data = {
@@ -1137,7 +1124,6 @@ def get_client_profile(request, client_id):
 
 @api_view(['GET'])
 def get_candidat_profile(request, candidat_id):
-    print("Candidat ID:", candidat_id)
     try:
         candidat = Candidat.objects.get(id=candidat_id)  
         candidat_data = {
@@ -1174,8 +1160,7 @@ def update_client_profile(request, client_id):
     try:
         client = get_object_or_404(Client, id=client_id)
         # Log des données reçues
-        print("Received data:", request.data)
-        print("Received files:", request.FILES)
+
         data = request.data
         client.nom = data.get("nom", client.nom)
         client.utilisateur.email = data.get("email", client.email)
@@ -1204,13 +1189,11 @@ def update_client_profile(request, client_id):
 @api_view(['PUT'])
 @parser_classes([MultiPartParser, FormParser])  # Gestion des fichiers et formulaires
 def update_candidat_profile(request, candidat_id):
-    print(candidat_id)
     try:
         candidat = get_object_or_404(Candidat, id=candidat_id)
 
         # Log des données reçues
-        print("Received data:", request.data)
-        print("Received files:", request.FILES)
+
 
         # Gestion des fichiers (CV & Lettre de motivation)
         if "cv" in request.FILES:
@@ -1298,7 +1281,7 @@ def get__document(request, document_id):
 @api_view(['PUT'])
 @parser_classes([MultiPartParser, FormParser])  # Gestion des fichiers et formulaires
 def updatelogo_candidat_profile(request, candidat_id):
-    print(candidat_id)
+
     try:
         candidat = get_object_or_404(Candidat, id=candidat_id)
         if "logo" in request.FILES:
@@ -1962,7 +1945,7 @@ def liste_offres_api(request):
     param = Parametres.objects.last()
     limite = param.nombreoffresAr if lang == 'ar' else param.nombreoffres
     valeur_liste = request.GET.get('listes', 'noncomplet')
-    print(valeur_liste)
+
     # 2) Liste des offres validées
     if groupement_id:
         if lang == 'fr' :
@@ -2033,7 +2016,7 @@ def liste_offres_api(request):
             months_idx = sorted({d.month for d in dates})
             years = sorted({d.year for d in dates})
             times = sorted({(d.hour, d.minute) for d in dates})
-            print("----",valeur_liste)
+            
             if valeur_liste == 'noncomplet':
                 if len(years) == 1:
                     # Même année → on regroupe
@@ -2054,7 +2037,7 @@ def liste_offres_api(request):
                             tstr = ""
                         parts.append(f"{j} {mois[mn-1]} {yr}{tstr}")
                     date_limite = ", ".join(parts)
-                print("date ---",date_limite)
+                
             else :
                 d = offre.date_limite
                 if d:
@@ -2064,7 +2047,6 @@ def liste_offres_api(request):
                         "year": d.year,
                         "times": [{"hour": d.hour, "minute": d.minute}] if offre.afficher_heures else []
                     }
-                print("date else ---",date_limite)
                 
         else:
             # Offres 
@@ -2136,7 +2118,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
 def detail_offre_api(request, offre_id):
-    print("-------------------","detail_offre_api")
+  
     lang = request.GET.get('lang', 'fr')
     offre = get_object_or_404(OffreEmploi, id=offre_id) 
     # offre.nombre_vu = offre.nombre_vu+ 1
@@ -2144,6 +2126,14 @@ def detail_offre_api(request, offre_id):
     
     # Filtrer les documents selon la langue
     documents = offre.documents.filter(langue=lang)
+    if lang == "ar":
+        Nbr_OffreEmploi = OffreEmploi.objects.filter(si_valider_ar=True,client__libelle_ar=(offre.client.libelle_ar if offre.client else None)).select_related('client').count()
+        Nbr_AvisInfos = AvisInfos.objects.filter(si_valider_ar=True,client__libelle_ar=(offre.client.libelle_ar if offre.client else None)).select_related('client').count()
+        Nbr_AppelOffre = AppelOffre.objects.filter(si_valider_ar=True,client__libelle_ar=(offre.client.libelle_ar if offre.client else None)).select_related('client').count()
+    else:
+        Nbr_OffreEmploi = OffreEmploi.objects.filter(si_valider=True,client__libelle_fr=(offre.client.libelle_fr if offre.client else None)).select_related('client').count()
+        Nbr_AvisInfos = AvisInfos.objects.filter(si_valider=True,client__libelle_fr=(offre.client.libelle_fr if offre.client else None)).select_related('client').count()
+        Nbr_AppelOffre = AppelOffre.objects.filter(si_valider=True,client__libelle_fr=(offre.client.libelle_fr if offre.client else None)).select_related('client').count()
 
     # 3. Préparer les données des documents filtrés par langue
     documents_data = []
@@ -2173,6 +2163,9 @@ def detail_offre_api(request, offre_id):
 
     # 5. Construire la réponse JSON
     offre_data = {
+        "Nbr_AvisInfos": Nbr_AvisInfos,
+        "Nbr_OffreEmploi": Nbr_OffreEmploi,
+        "Nbr_AppelOffre": Nbr_AppelOffre,
         "id": offre.id,
         "titre": titre,
         "description": description,
@@ -2198,11 +2191,11 @@ def detail_offre_api(request, offre_id):
 def liste_annoces_cleint(request):
     # Récupérer le paramètre "client" de la requête
     client_name = request.GET.get('client', None)
-    print(client_name)
+   
 
 
 def liste_annonces_client(request):
-    print("AAAAAAAAAAAAAAAAAAAAAAAA",request.GET.get('lang', 'fr'))
+   
     lang = request.GET.get('lang', 'fr')
     client_name = request.GET.get('client', None)
     # Filtrer les offres par client selon la langue
@@ -2218,7 +2211,7 @@ def liste_annonces_client(request):
             client__libelle_fr=client_name
         ).select_related('client')
     # Préparer les données selon la langue
-    print(offres_list,"------")
+    
     offres_data = []
     for off in offres_list:
         
@@ -2259,7 +2252,7 @@ def liste_annonces_client(request):
 
 @csrf_exempt
 def ajouter_offre(request, id):
-    print(id)
+   
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -2275,7 +2268,7 @@ def ajouter_offre(request, id):
                 si_national=data['si_national']
 
             )
-            print("-------------",offre.id)
+         
             return JsonResponse({"message": "Offre ajoutée avec succès", "offre_id": offre.id}, status=201)
         except Client.DoesNotExist:
             return JsonResponse({"error": "Client non trouvé"}, status=404)
@@ -2333,7 +2326,7 @@ from django.http import JsonResponse
 
 @csrf_exempt
 def modifier_type_offre(request, offre_id):
-    print("id offre", offre_id)
+    
     offre = get_object_or_404(OffreEmploi, id=offre_id)
 
     if request.method == "PUT":
@@ -2503,7 +2496,7 @@ def login_view(request):
     email = request.data.get("email")
     password = request.data.get("password")
     
-    print(f"Tentative de connexion pour l'email : {email}")
+    
 
     # Vérifier si l'utilisateur existe avec cet email
     try:

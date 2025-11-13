@@ -148,6 +148,24 @@
                                 </span>
                             </div>
                         </div>
+                        {% elif field.name == 'avis_fixe' %}
+                        <!-- Modern Toggle Switch for Avis Fixe -->
+                        <div class="toggle-switch-container">
+                            <label class="toggle-switch-label">{{ field.label }}</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" class="toggle-switch-input" {% if field.value %}checked{% endif %}>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-status-text" id="toggle-status-{{ field.name }}">
+                                    {% if field.value %}
+                                        <span class="toggle-enabled">✓ Avis fixé</span>
+                                    {% else %}
+                                        <span class="toggle-disabled">○ Avis non fixé</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
                         {% else %}
                             <div class="form-group">
                                 {{ field.label_tag }}
@@ -293,6 +311,22 @@
                     }
                 });
             }
+
+
+            // Toggle pour avis_fixe
+            const toggleInputFixe = document.getElementById('avis_fixe_toggle');
+            const statusTextFixe = document.getElementById('toggle-status-avis_fixe');
+            
+            if (toggleInputFixe && statusTextFixe) {
+                toggleInputFixe.addEventListener('change', function() {
+                    if (this.checked) {
+                        statusTextFixe.innerHTML = '<span class="toggle-enabled">✓ Avis fixé</span>';
+                    } else {
+                        statusTextFixe.innerHTML = '<span class="toggle-disabled">○ Avis non fixé</span>';
+                    }
+                });
+            }
+
         });
         // Fonction pour déplacer une avis vers le groupe actuel
         document.querySelectorAll('.move-to-group').forEach(button => {

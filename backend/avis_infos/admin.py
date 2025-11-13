@@ -13,7 +13,7 @@ class AvisInfosAdmin(admin.ModelAdmin):
             'fields': ('titre', 'description', 'client',  'lien')
         }),
         ("Détails", {
-            'fields': ('lieu', 'afficher_heures', 'groupement_spacial', 'si_groupement', 'titre_groupement_cpacial')
+            'fields': ('lieu', 'afficher_heures', 'avis_fixe', 'groupement_spacial', 'si_groupement', 'titre_groupement_cpacial')
         }),
         ("Statut", {
             'fields': ( 'si_valider', 'si_principal', 'avis_principale')

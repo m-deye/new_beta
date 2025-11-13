@@ -9,6 +9,8 @@ from django.forms import modelformset_factory
 from django.contrib import messages
 from django.db.models import Count, Q
 from .models import *
+from avis_infos.models import *
+from offres_emploi.models import *
 from .forms import *
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -168,12 +170,12 @@ def admin_appels_offres(request):
         offres = AppelOffre.objects.annotate(
             nombre_offres_publiees=Count('client__appels_offres', filter=Q(client__appels_offres__si_valider=True))
         ).order_by('-date_creation')
-    print("lllllllllll")
+
     # Actions de l'administrateur
     if request.method == 'POST':
         action = request.POST.get('action')
         offre_id = request.POST.get('offre_id')
-        print("lllllllllll")
+
         if action and offre_id:
             offre = get_object_or_404(AppelOffre, id=offre_id)
 
@@ -699,10 +701,19 @@ def liste_appels_offres(request):
 
 
 def detail_apple_offre_api(request, apple_id):
-    print("-------------------","detail_apple_offre_api")
+
     lang = request.GET.get('lang', 'fr')
     appel = get_object_or_404(AppelOffre, id=apple_id)
     documents = appel.documents.all()
+    if lang == "ar":
+        Nbr_AppelOffre = AppelOffre.objects.filter(si_valider_ar=True,client__libelle_ar=(appel.client.libelle_ar if appel.client else None)).select_related('client').count()
+        Nbr_AvisInfos = AvisInfos.objects.filter(si_valider_ar=True,client__libelle_ar=(appel.client.libelle_ar if appel.client else None)).select_related('client').count()
+        Nbr_OffreEmploi = OffreEmploi.objects.filter(si_valider_ar=True,client__libelle_ar=(appel.client.libelle_ar if appel.client else None)).select_related('client').count()
+    else:
+        Nbr_AppelOffre = AppelOffre.objects.filter(si_valider=True,client__libelle_fr=(appel.client.libelle_fr if appel.client else None)).select_related('client').count()
+        Nbr_AvisInfos = AvisInfos.objects.filter(si_valider=True,client__libelle_fr=(appel.client.libelle_fr if appel.client else None)).select_related('client').count()
+        Nbr_OffreEmploi = OffreEmploi.objects.filter(si_valider=True,client__libelle_fr=(appel.client.libelle_fr if appel.client else None)).select_related('client').count()
+
 
     # 3. Préparer les données des documents (inchangé)
     documents_data = []
@@ -732,6 +743,9 @@ def detail_apple_offre_api(request, apple_id):
 
     # 5. Construire la réponse JSON
     offre_data = {
+        "Nbr_AvisInfos": Nbr_AvisInfos,
+        "Nbr_OffreEmploi": Nbr_OffreEmploi,
+        "Nbr_AppelOffre": Nbr_AppelOffre,
         "id": appel.id,
         "titre": titre,
         "description": description,
@@ -844,7 +858,6 @@ def apple_offres_par_client(request, client_id):
 def liste_annoces_cleint(request):
     lang = request.GET.get('lang', 'fr')
     client_name = request.GET.get('client', None)
-    print("client_name========",client_name, lang)
     # Filtrer les offres par client selon la langue
     if lang == "ar":
         offres_list = AppelOffre.objects.filter(

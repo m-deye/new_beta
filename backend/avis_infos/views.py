@@ -7,6 +7,8 @@ from django.forms import modelformset_factory
 from django.contrib import messages
 from django.db.models import Count, Q
 from .models import *
+from offres_emploi.models import *
+from appels_offres.models import *
 from .forms import *
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -279,7 +281,7 @@ def get_avis_infos_details(request, avis_id):
             for doc in documents
         ]
     }
-    print(data)
+
     # Renvoyer les données au format JSON
     return JsonResponse(data)
 
@@ -433,24 +435,40 @@ def listcompler_avis_infos(request):
     return JsonResponse(offres_data, safe=False)
 
 from parametres.models import Parametres
+from django.db.models import Case, When, Value, IntegerField
 
 def liste_avis_infos(request):
+    
     # 1) Récupérer la langue demandée (fr par défaut)
     lang = request.GET.get('lang', 'fr')
-
+    param = Parametres.objects.last()
+    limite = param.nombreavisAr if lang == 'ar' else param.nombreavis
+    
     # 2) Tableaux de mois FR / AR
     if lang == 'fr' :
         avis_list = AvisInfos.objects.filter(
             si_valider=True
         ).filter(
             Q(si_principal=True) | Q(avis_principale__isnull=True)
-        ).select_related('client').prefetch_related('avis_liees').order_by('-date_creation')
+        ).select_related('client').prefetch_related('avis_liees').order_by(
+                        Case(When(
+                            avis_fixe=True, 
+                            then=Value(0)), 
+                             default=Value(1), 
+                             output_field=IntegerField()),
+                        '-date_creation')[:limite]
     else:
         avis_list = AvisInfos.objects.filter(
             si_valider_ar=True
         ).filter(
             Q(si_principal=True) | Q(avis_principale__isnull=True)
-        ).select_related('client').prefetch_related('avis_liees').order_by('-date_creation')
+        ).select_related('client').prefetch_related('avis_liees').order_by(
+                        Case(When(
+                            avis_fixe=True, 
+                            then=Value(0)), 
+                             default=Value(1), 
+                             output_field=IntegerField()),
+                        '-date_creation')[:limite]
         
     mois_fr = [
         "janvier","février","mars","avril","mai","juin",
@@ -463,25 +481,24 @@ def liste_avis_infos(request):
     mois = mois_ar if lang == 'ar' else mois_fr
 
 
-    param = Parametres.objects.last()
-    limite = param.nombreavisAr if lang == 'ar' else param.nombreavis
+    
     # 3) Filtrer les avis
-    if lang == 'fr' :
-        avis_list = (
-            AvisInfos.objects
-                    .filter(si_valider=True)
-                    .filter(Q(si_principal=True) | Q(avis_principale__isnull=True))
-                    .select_related('client')
-                    .prefetch_related('avis_liees').order_by('-date_mise_en_ligne')[:limite]
-        )
-    else:
-        avis_list = (
-            AvisInfos.objects
-                    .filter(si_valider_ar=True)
-                    .filter(Q(si_principal=True) | Q(avis_principale__isnull=True))
-                    .select_related('client')
-                    .prefetch_related('avis_liees').order_by('-date_mise_en_ligne')[:limite]
-        )
+    # if lang == 'fr' :
+    #     avis_list = (
+    #         AvisInfos.objects
+    #                 .filter(si_valider=True)
+    #                 .filter(Q(si_principal=True) | Q(avis_principale__isnull=True))
+    #                 .select_related('client')
+    #                 .prefetch_related('avis_liees').order_by('-date_mise_en_ligne')[:limite]
+    #     )
+    # else:
+    #     avis_list = (
+    #         AvisInfos.objects
+    #                 .filter(si_valider_ar=True)
+    #                 .filter(Q(si_principal=True) | Q(avis_principale__isnull=True))
+    #                 .select_related('client')
+    #                 .prefetch_related('avis_liees').order_by('-date_mise_en_ligne')[:limite]
+    #     )
 
     avis_data = []
     for avis in avis_list:
@@ -534,11 +551,14 @@ def liste_avis_infos(request):
         # 6) Construire la réponse JSON
         avis_data.append({
             "id":              avis.id,
+            "type_offre":      avis.type_offre,
             "client__special": avis.client.special if avis.client else False,
             "titre":           titre,
             "description":     description,
             "date_limite":     date_limite,
             "lieu":            lieu,
+            "lien":            avis.lien,
+            "avis_fixe":       avis.avis_fixe,
             "titre_entreprise": avis.titre_entreprise,
             "client__nom":     client_nom,
             "client__logo":    (request.build_absolute_uri(avis.client.logo.url)
@@ -547,6 +567,7 @@ def liste_avis_infos(request):
             "si_principal":    avis.si_principal,
             "avis_liees": [
                 {
+                    "type_offre":      a.type_offre,
                     "id":          a.id,
                     "titre":       a.titre_ar       if lang == 'ar' else a.titre,
                     "date_limite": {
@@ -564,15 +585,23 @@ def liste_avis_infos(request):
             "lang": lang,
             "dir":  'rtl' if lang == 'ar' else 'ltr'
         })
-
+        print(avis_data)
     return JsonResponse(avis_data, safe=False)
 
 def detail_avis_infos(request, avis_id):
-    print("-------------------","detail_avis_infos")
+   
     lang = request.GET.get('lang', 'fr')
     appel = get_object_or_404(AvisInfos, id=avis_id)
     documents = appel.documents.all()
-
+    # Nbr_OffreEmploi_AR , Nbr_OffreEmploi_AR = 0,0
+    if lang == "ar":
+        Nbr_AvisInfos = AvisInfos.objects.filter(si_valider_ar=True,client__libelle_ar=(appel.client.libelle_ar if appel.client else None)).select_related('client').count()
+        Nbr_AppelOffre = AppelOffre.objects.filter(si_valider_ar=True,client__libelle_ar=(appel.client.libelle_ar if appel.client else None)).select_related('client').count()
+        Nbr_OffreEmploi = OffreEmploi.objects.filter(si_valider_ar=True,client__libelle_ar=(appel.client.libelle_ar if appel.client else None)).select_related('client').count()
+    else:
+        Nbr_AvisInfos = AvisInfos.objects.filter(si_valider=True,client__libelle_fr=(appel.client.libelle_fr if appel.client else None)).select_related('client').count()
+        Nbr_AppelOffre = AppelOffre.objects.filter(si_valider=True,client__libelle_fr=(appel.client.libelle_fr if appel.client else None)).select_related('client').count()
+        Nbr_OffreEmploi = OffreEmploi.objects.filter(si_valider=True,client__libelle_fr=(appel.client.libelle_fr if appel.client else None)).select_related('client').count()
     # 3. Préparer les données des documents (inchangé)
     documents_data = []
     for document in documents:
@@ -598,9 +627,14 @@ def detail_avis_infos(request, avis_id):
         lieu        = appel.lieu
         client_nom  = (appel.client.libelle_fr 
                        if appel.client else None)
-
+   
     # 5. Construire la réponse JSON
     offre_data = {
+        # "Nbr_OffreEmploi_FR": Nbr_OffreEmploi_FR,
+        # "Nbr_OffreEmploi_AR": Nbr_OffreEmploi_AR,
+        "Nbr_AvisInfos": Nbr_AvisInfos,
+        "Nbr_OffreEmploi": Nbr_OffreEmploi,
+        "Nbr_AppelOffre": Nbr_AppelOffre,
         "id": appel.id,
         "titre": titre,
         "description": description,
@@ -747,12 +781,12 @@ def liste_annoces_cleint(request):
             "dir": 'rtl' if lang == 'ar' else 'ltr',
         })
 
-    print(offres_data)
+   
     return JsonResponse(offres_data, safe=False)
 
 @csrf_exempt
 def ajouter_offre(request, id):
-    print(id)
+   
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -865,7 +899,7 @@ def delete_document(request, document_id):
 
 @csrf_exempt
 def modifier_type_offre(request, offre_id):
-    print("id offre", offre_id)
+  
     offre = get_object_or_404(AvisInfos, id=offre_id)
 
     if request.method == "PUT":

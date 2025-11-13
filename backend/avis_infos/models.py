@@ -65,7 +65,7 @@ class AvisInfos(models.Model):
     afficher_heures = models.BooleanField(default=True, verbose_name="Afficher les heures avec la date")
     a_traduire = models.BooleanField(default=False, verbose_name="pres a traduire")
     si_valider_ar = models.BooleanField(default=False)
-    
+    avis_fixe = models.BooleanField(default=False, verbose_name="Avis fixé")
 
     class Meta:
         verbose_name = "Avi Info"
